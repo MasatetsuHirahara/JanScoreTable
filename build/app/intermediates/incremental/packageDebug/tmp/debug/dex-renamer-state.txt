@@ -1,0 +1,4 @@
+#Sun May 29 15:22:10 JST 2022
+base.0=/Users/tadaaki/AndroidStudioProjects/flutter_app/build/app/intermediates/dex/debug/mergeDexDebug/classes.dex
+path.0=classes.dex
+renamed.0=classes.dex
