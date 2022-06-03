@@ -34,13 +34,16 @@ class GameSettingModel extends BaseModel {
     kind = map[columnKind] as int;
     rate = map[columnRate] as int;
     chipRate = map[columnChipRate] as int;
+    _placeFee = map[columnPlaceFee] as int;
   }
 
   int drId;
   int kind; // 三麻四麻
   int rate;
   int chipRate;
-
+  int _placeFee;
+  int get placeFee => _placeFee != null ? _placeFee : 0;
+  set placeFee(int fee) => _placeFee = fee;
   @override
   Map<String, Object> toMap() {
     final map = <String, Object>{
@@ -49,6 +52,7 @@ class GameSettingModel extends BaseModel {
       columnKind: kind,
       columnRate: rate,
       columnChipRate: chipRate,
+      columnPlaceFee: placeFee,
     };
     return map;
   }

@@ -53,6 +53,7 @@ create table if not exists $tableMember (
   $columnKind integer,
   $columnRate integer,
   $columnChipRate integer,
+  $columnPlaceFee integer,
   foreign key ($columnDayRecodeId) references $tableDayRecode(_id) on delete cascade
   );
 ''');

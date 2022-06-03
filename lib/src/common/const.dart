@@ -7,6 +7,7 @@ final String columnDayRecodeId = 'day_recode_id';
 final String columnKind = 'kind';
 final String columnRate = 'rate';
 final String columnChipRate = 'chip_rate';
+final String columnPlaceFee = 'place_fee';
 final String columnMember1 = 'member1';
 final String columnMember2 = 'member2';
 final String columnMember3 = 'member3';

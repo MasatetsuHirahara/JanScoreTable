@@ -13,7 +13,6 @@ class CustomElevatedButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.red,
-      //color: Theme.of(context).primaryColor,
       child: Padding(
         padding: EdgeInsets.fromLTRB(4, 4, 4, 4),
         child: Align(

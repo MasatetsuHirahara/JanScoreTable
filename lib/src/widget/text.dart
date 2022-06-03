@@ -50,3 +50,23 @@ class ButtonText extends StatelessWidget {
     );
   }
 }
+
+class ScoreText extends StatelessWidget {
+  ScoreText(this.score, {this.trailing});
+  String trailing;
+  int score;
+  @override
+  Widget build(BuildContext context) {
+    var text = score.toString();
+    if (trailing != null) {
+      text += ' $trailing';
+    }
+    return Text(
+      text,
+      style: TextStyle(
+        color: score >= 0 ? Colors.black : Colors.red,
+        fontSize: 16.sp,
+      ),
+    );
+  }
+}
