@@ -6,9 +6,8 @@ class MyUtil {
     throw new AssertionError("private Constructor");
   } // private constructor
 
-  // ignore: non_constant_identifier_names
   static String dayToString(DateTime day) {
     initializeDateFormatting('ja');
-    return DateFormat.yMMMd('ja').format(day).toString();
+    return DateFormat.yMMMMEEEEd('ja').format(day).toString();
   }
 }

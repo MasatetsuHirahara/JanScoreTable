@@ -7,7 +7,7 @@ import '../../provider/dayRecodeProvider.dart';
 import '../../provider/gameJoinMemberProvider.dart';
 import '../../provider/gameSettingProvider.dart';
 
-final gameListViewProvider = ChangeNotifierProvider.autoDispose((ref) {
+final gameListViewModel = ChangeNotifierProvider.autoDispose((ref) {
   return GameListViewModel(ref);
 });
 

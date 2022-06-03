@@ -39,13 +39,15 @@ class DayRecodeNotifier extends ChangeNotifier {
   Map<int, DayRecodeModel> drMap = {};
   List<DayRecodeModel> drList = [];
 
-  Future<void> newInsert() async {
+  Future<DayRecodeModel> newInsert() async {
     final dr = DayRecodeModel(day: MyUtil.dayToString(DateTime.now()));
 
     final dbModel = ref.read(dbProvider);
     await dbModel.insert(accessor, dr);
     await get();
     notifyListeners();
+
+    return dr;
   }
 
   Future<void> delete(DayRecodeModel dr) async {

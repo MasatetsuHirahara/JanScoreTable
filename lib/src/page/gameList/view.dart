@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/src/page/gameList/viewModel.dart';
+import 'package:flutter_app/src/page/gameSetting/view.dart';
 import 'package:flutter_app/src/page/score/view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../widget/dialog.dart';
 
 class GameListPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vm = ref.watch(gameListViewProvider);
+    final vm = ref.watch(gameListViewModel);
 
     final cardPropertyList = vm.getProperty();
     return Scaffold(
@@ -35,7 +38,8 @@ class GameListPage extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          //drProvider.newInsert();
+          // まだdrはないので0を渡す
+          Navigator.of(context).push<dynamic>(GameSettingPage.route(drId: 0));
         },
         tooltip: 'Increment',
         child: const Icon(Icons.add),
@@ -73,21 +77,7 @@ class DayRecodeCard extends StatelessWidget {
           return showDialog(
             context: context,
             builder: (context) {
-              return AlertDialog(
-                title: const Text('削除してよろしいですか？'),
-                actions: <Widget>[
-                  TextButton(
-                    child: const Text('いいえ'),
-                    onPressed: () => Navigator.of(context).pop(false),
-                  ),
-                  TextButton(
-                    child: const Text('はい'),
-                    onPressed: () {
-                      Navigator.of(context).pop(true);
-                    },
-                  ),
-                ],
-              );
+              return const DeleteDialog('削除してよろしいですか？');
             },
           );
         },

@@ -34,12 +34,12 @@ dependencies:
   path_provider: ^2.0.9
   fl_chart: 0.46.0
   flutter_screenutil: ^5.5.3+2
+  intl: ^0.17.0
 
 dev_dependencies:
   pedantic_mono: any
   flutter_test:
     sdk: flutter
-  intl: ^0.17.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

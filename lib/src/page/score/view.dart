@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/src/page/adjustment/view.dart';
-import 'package:flutter_app/src/page/gameSetting.dart';
+import 'package:flutter_app/src/page/gameSetting/view.dart';
 import 'package:flutter_app/src/page/score/viewModel.dart';
 import 'package:flutter_app/src/widget/speechBubble.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
