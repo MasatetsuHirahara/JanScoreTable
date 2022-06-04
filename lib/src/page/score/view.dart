@@ -9,7 +9,7 @@ import 'package:flutter_app/src/page/score/viewModel.dart';
 import 'package:flutter_app/src/widget/speechBubble.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../provider/gameSettingProvider.dart';
+import '../../accessor/table/gameSettingProvider.dart';
 import '../chipScore/view.dart';
 import '../scoreChart/view.dart';
 
@@ -38,13 +38,13 @@ class ScorePage extends ConsumerWidget {
   bool isGsInitialized = false;
 
   void goGsIfNeed(BuildContext context, WidgetRef ref) {
-    final gsProvider = ref.watch(gameSettingProvider);
+    final gsa = ref.watch(gameSettingAccessor);
     if (isGsInitialized) {
       return;
     }
-    if (gsProvider.isInitialized) {
+    if (gsa.isInitialized) {
       if (!isGsInitialized) {
-        final gs = gsProvider.drIdMap[drId];
+        final gs = gsa.drIdMap[drId];
         if (gs == null) {
           //　初回ビルドが完了する前に遷移するとエラーなるので、ビルド完了を待つ
           WidgetsBinding.instance.addPostFrameCallback((_) {

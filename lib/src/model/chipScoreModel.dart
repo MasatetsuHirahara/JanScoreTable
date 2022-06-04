@@ -34,9 +34,3 @@ class ChipScoreModel extends BaseModel {
     return map;
   }
 }
-
-class ChipScoreAccessor extends BaseTableAccessor {
-  ChipScoreAccessor() {
-    tableName = tableChipScore;
-  }
-}

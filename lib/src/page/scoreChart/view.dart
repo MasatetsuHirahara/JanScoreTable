@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../provider/gameJoinMemberProvider.dart';
-import '../../provider/scoreProvider.dart';
+import '../../accessor/table/gameJoinMemberProvider.dart';
+import '../../accessor/table/scoreProvider.dart';
 import '../../widget/text.dart';
 
 enum numberColor {
@@ -76,7 +76,7 @@ class ScoreChartViewModel extends ChangeNotifier {
   }
 
   void listenGameJoinedMember() {
-    localFunc(GameJoinMemberNotifier p) {
+    localFunc(GameJoinMemberAccessor p) {
       if (p.drIdMap.containsKey(drId)) {
         final memberList = p.drIdMap[drId];
         for (var i = 0; i < memberList.length; i++) {
@@ -92,12 +92,12 @@ class ScoreChartViewModel extends ChangeNotifier {
       notifyListeners();
     }
 
-    final provider = ref.read(gameJoinMemberProvider);
-    if (provider.isInitialized) {
-      localFunc(provider);
+    final accessor = ref.read(gameJoinMemberAccessor);
+    if (accessor.isInitialized) {
+      localFunc(accessor);
     }
 
-    ref.listen<GameJoinMemberNotifier>(gameJoinMemberProvider,
+    ref.listen<GameJoinMemberAccessor>(gameJoinMemberAccessor,
         (previous, next) {
       if (next.isInitialized) {
         localFunc(next);
@@ -119,9 +119,9 @@ class ScoreChartViewModel extends ChangeNotifier {
 
   void listenScore() {
     // ignore: prefer_function_declarations_over_variables
-    localFunc(ScoreNotifier p) {
-      if (p.scoreViewMap.containsKey(drId)) {
-        final drIdScoreView = p.scoreViewMap[drId];
+    localFunc(ScoreAccessor accessor) {
+      if (accessor.scoreViewMap.containsKey(drId)) {
+        final drIdScoreView = accessor.scoreViewMap[drId];
         maxX = drIdScoreView.maxGameCount + 1.0;
 
         initChartBarDataList(drIdScoreView.maxNumber + 1);
@@ -148,12 +148,12 @@ class ScoreChartViewModel extends ChangeNotifier {
       notifyListeners();
     }
 
-    final provider = ref.read(scoreProvider);
-    if (provider.isInitialized) {
-      localFunc(provider);
+    final accessor = ref.read(scoreAccessor);
+    if (accessor.isInitialized) {
+      localFunc(accessor);
     }
 
-    ref.listen<ScoreNotifier>(scoreProvider, (previous, next) {
+    ref.listen<ScoreAccessor>(scoreAccessor, (previous, next) {
       if (next.isInitialized) {
         localFunc(next);
       }

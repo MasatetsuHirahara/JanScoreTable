@@ -1,14 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_app/src/accessor/table/gameSettingProvider.dart';
 import 'package:flutter_app/src/model/gameSettingModel.dart';
-import 'package:flutter_app/src/provider/gameSettingProvider.dart';
 import 'package:flutter_app/src/widget/text.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../provider/chipScoreProvider.dart';
-import '../../provider/scoreProvider.dart';
+import '../../accessor/table/chipScoreProvider.dart';
+import '../../accessor/table/scoreProvider.dart';
 
 final adjustmentViewProvider = ChangeNotifierProvider.autoDispose
     .family<AdjustmentViewModel, int>((ref, drId) {
@@ -27,7 +27,7 @@ class AdjustmentViewModel extends ChangeNotifier {
   List<PointProperty> pointList = [];
   GameSettingModel gameSetting;
   List<int> totalList = [];
-  List<ChipScoreView> chipScoreList;
+  List<ChipScoreModelEx> chipScoreList;
   TextEditingController placeFeeController = TextEditingController()
     ..text = '0';
 
@@ -84,20 +84,20 @@ class AdjustmentViewModel extends ChangeNotifier {
   }
 
   void listenGameSetting() {
-    final provider = ref.watch(gameSettingProvider);
-    if (provider.isInitialized) {
-      if (provider.drIdMap.containsKey(drId)) {
-        gameSetting = provider.drIdMap[drId];
+    final accessor = ref.watch(gameSettingAccessor);
+    if (accessor.isInitialized) {
+      if (accessor.drIdMap.containsKey(drId)) {
+        gameSetting = accessor.drIdMap[drId];
         setPointPropertyList();
       }
     }
   }
 
   void listenScore() {
-    final provider = ref.watch(scoreProvider);
-    if (provider.isInitialized) {
-      if (provider.scoreViewMap.containsKey(drId)) {
-        final drIdScoreView = provider.scoreViewMap[drId];
+    final accessor = ref.watch(scoreAccessor);
+    if (accessor.isInitialized) {
+      if (accessor.scoreViewMap.containsKey(drId)) {
+        final drIdScoreView = accessor.scoreViewMap[drId];
         totalList = [];
         for (var i = 0; i <= drIdScoreView.maxGameCount; i++) {
           for (var j = 0; j <= drIdScoreView.maxNumber; j++) {
@@ -117,10 +117,10 @@ class AdjustmentViewModel extends ChangeNotifier {
   }
 
   void listenChipScore() {
-    final provider = ref.watch(chipScoreProvider);
-    if (provider.isInitialized) {
-      if (provider.drIdMap.containsKey(drId)) {
-        chipScoreList = provider.drIdMap[drId];
+    final accessor = ref.watch(chipScoreAccessor);
+    if (accessor.isInitialized) {
+      if (accessor.drIdMap.containsKey(drId)) {
+        chipScoreList = accessor.drIdMap[drId];
         setPointPropertyList();
       }
     }
@@ -132,7 +132,7 @@ class AdjustmentViewModel extends ChangeNotifier {
       return;
     }
     gameSetting.placeFee = fee;
-    ref.read(gameSettingProvider).upsert(gameSetting);
+    ref.read(gameSettingAccessor).upsert(gameSetting);
   }
 }
 

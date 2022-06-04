@@ -17,9 +17,3 @@ class DayRecodeModel extends BaseModel {
     return map;
   }
 }
-
-class DayRecodeAccessor extends BaseTableAccessor {
-  DayRecodeAccessor() {
-    tableName = tableDayRecode;
-  }
-}

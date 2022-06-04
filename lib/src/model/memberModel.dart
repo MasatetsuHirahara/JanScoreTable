@@ -3,7 +3,6 @@ import 'baseModel.dart';
 
 class MemberModel extends BaseModel {
   MemberModel();
-  static String tableName = tableMember;
 
   MemberModel.fromPara(int id, this.name, this.lastJoin) {
     this.id = id;
@@ -25,11 +24,5 @@ class MemberModel extends BaseModel {
       columnLastJoin: lastJoin
     };
     return map;
-  }
-}
-
-class MemberAccessor extends BaseTableAccessor {
-  MemberAccessor() {
-    tableName = tableMember;
   }
 }

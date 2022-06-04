@@ -2,15 +2,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_app/src/model/dayRecodeModel.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../accessor/table/chipScoreProvider.dart';
+import '../../accessor/table/dayRecodeAccessor.dart';
+import '../../accessor/table/gameJoinMemberProvider.dart';
+import '../../accessor/table/gameSettingProvider.dart';
+import '../../accessor/table/memberAccessor.dart';
+import '../../accessor/table/scoreProvider.dart';
 import '../../model/gameJoinMemberModel.dart';
 import '../../model/gameSettingModel.dart';
 import '../../model/memberModel.dart';
-import '../../provider/chipScoreProvider.dart';
-import '../../provider/dayRecodeProvider.dart';
-import '../../provider/gameJoinMemberProvider.dart';
-import '../../provider/gameSettingProvider.dart';
-import '../../provider/memberProvider.dart';
-import '../../provider/scoreProvider.dart';
 
 const int defaultMemberNum = 4;
 const int maxMemberNum = 5;
@@ -40,16 +40,16 @@ class GameSettingViewModel extends ChangeNotifier {
   bool addButtonVisible = true;
   bool removeButtonVisible = false;
 
-  List<GameJoinMemberView> gameJoinedMemberList = [];
+  List<GameJoinMemberModelEx> gameJoinedMemberList = [];
 
   void listenGameSetting() {
-    localFunc(GameSettingNotifier p) {
+    localFunc(GameSettingAccessor gsa) {
       if (isInitializedGameSetting) {
         return;
       }
-      if (p.isInitialized) {
-        if (p.drIdMap.containsKey(drId)) {
-          final gs = p.drIdMap[drId];
+      if (gsa.isInitialized) {
+        if (gsa.drIdMap.containsKey(drId)) {
+          final gs = gsa.drIdMap[drId];
           kind = KindValueExtension.fromInt(gs.kind);
           rateController.text = gs.rate.toString();
           chipRateController.text = gs.chipRate.toString();
@@ -58,22 +58,22 @@ class GameSettingViewModel extends ChangeNotifier {
       }
     }
 
-    final p = ref.read(gameSettingProvider);
-    localFunc(p);
-    ref.listen<GameSettingNotifier>(gameSettingProvider, (previous, next) {
+    final accessor = ref.read(gameSettingAccessor);
+    localFunc(accessor);
+    ref.listen<GameSettingAccessor>(gameSettingAccessor, (previous, next) {
       localFunc(next);
     });
   }
 
   void listenGameJoinedMember() {
-    localFunc(GameJoinMemberNotifier p) {
+    localFunc(GameJoinMemberAccessor accessor) {
       if (isInitializedGameJoinedMember) {
         return;
       }
-      if (p.isInitialized) {
-        if (p.drIdMap.containsKey(drId)) {
+      if (accessor.isInitialized) {
+        if (accessor.drIdMap.containsKey(drId)) {
           mpList = [];
-          final gjmList = p.drIdMap[drId];
+          final gjmList = accessor.drIdMap[drId];
           for (var i = 0; i < gjmList.length; i++) {
             addMemberProperty(gjm: gjmList[i]);
           }
@@ -82,9 +82,9 @@ class GameSettingViewModel extends ChangeNotifier {
       }
     }
 
-    final provider = ref.read(gameJoinMemberProvider);
-    localFunc(provider);
-    ref.listen<GameJoinMemberNotifier>(gameJoinMemberProvider,
+    final accessor = ref.read(gameJoinMemberAccessor);
+    localFunc(accessor);
+    ref.listen<GameJoinMemberAccessor>(gameJoinMemberAccessor,
         (previous, next) {
       localFunc(next);
     });
@@ -105,13 +105,13 @@ class GameSettingViewModel extends ChangeNotifier {
   }
 
   void setMpList(int index, int id) {
-    final m = ref.read(memberProvider).recodeMap[id];
+    final m = ref.read(memberAccessor).recodeMap[id];
     mpList[index].memberId = m.id;
     mpList[index].controller.text = m.name;
     notifyListeners();
   }
 
-  void addMemberProperty({GameJoinMemberView gjm}) {
+  void addMemberProperty({GameJoinMemberModelEx gjm}) {
     if (gjm == null) {
       mpList.add(MemberProperty());
     } else {
@@ -124,14 +124,14 @@ class GameSettingViewModel extends ChangeNotifier {
   }
 
   bool isThereScore() {
-    return ref.read(scoreProvider).isThereScore(drId, mpList.length - 1);
+    return ref.read(scoreAccessor).isThereScore(drId, mpList.length - 1);
   }
 
   Future<void> removeMemberProperty() async {
     // gjmに関連するデータを削除
-    await ref.read(gameJoinMemberProvider).deleteWithId(mpList.last.gjmId);
-    await ref.read(scoreProvider).deleteNumber(drId, mpList.length - 1);
-    await ref.read(chipScoreProvider).deleteNumber(drId, mpList.length - 1);
+    await ref.read(gameJoinMemberAccessor).deleteWithId(mpList.last.gjmId);
+    await ref.read(scoreAccessor).deleteNumber(drId, mpList.length - 1);
+    await ref.read(chipScoreAccessor).deleteNumber(drId, mpList.length - 1);
     mpList.removeLast();
 
     addButtonVisible = mpList.length < maxMemberNum;
@@ -154,7 +154,7 @@ class GameSettingViewModel extends ChangeNotifier {
       return null;
     }
 
-    final dr = await ref.read(dayRecodeProvider).newInsert();
+    final dr = await ref.read(dayRecodeAccessor).newInsert();
     drId = dr.id;
 
     return dr;
@@ -167,7 +167,7 @@ class GameSettingViewModel extends ChangeNotifier {
       ..kind = kind.num
       ..rate = int.parse(rateController.text)
       ..chipRate = int.parse(chipRateController.text);
-    ref.read(gameSettingProvider).upsert(gs);
+    ref.read(gameSettingAccessor).upsert(gs);
   }
 
   // メンバーを保存
@@ -175,13 +175,13 @@ class GameSettingViewModel extends ChangeNotifier {
     var day = '';
     if (dayRecode == null) {
       // drがnullはすでにdrが存在する時なのでread(スコア画面から遷移)
-      final dr = ref.read(dayRecodeProvider);
-      day = dr.drMap[drId].day;
+      final dra = ref.read(dayRecodeAccessor);
+      day = dra.drMap[drId].day;
     } else {
       day = dayRecode.day;
     }
 
-    final mProvider = ref.read(memberProvider);
+    final mAccessor = ref.read(memberAccessor);
     for (var i = 0; i < mpList.length; i++) {
       final m = mpList[i];
       if (m.controller.text == null || m.controller.text == '') {
@@ -189,28 +189,28 @@ class GameSettingViewModel extends ChangeNotifier {
       }
       if (m.memberId == null) {
         // 名前がすでに存在するか確認して、あればそのIDを利用
-        m.memberId = mProvider.getId(m.controller.text);
+        m.memberId = mAccessor.getId(m.controller.text);
       } else {
         //　名前が変わっている場合は、IDを変換する必要ある。
         if (m.readName != m.controller.text) {
-          m.memberId = mProvider.getId(m.controller.text);
+          m.memberId = mAccessor.getId(m.controller.text);
         }
       }
 
       // メンバーを保存。新規追加の場合IDがほしいのでawaitで待つ
       final member = MemberModel.fromPara(m.memberId, m.controller.text, day);
-      await mProvider.upsert(member);
+      await mAccessor.upsert(member);
 
       // メンバー参加を保存
       final gjm = GameJoinMemberModel.fromParam(m.gjmId, drId, member.id, i);
-      ref.read(gameJoinMemberProvider).upsert(gjm);
+      ref.read(gameJoinMemberAccessor).upsert(gjm);
     }
   }
 }
 
 class MemberProperty {
   MemberProperty();
-  MemberProperty.fromGjm(GameJoinMemberView gjm) {
+  MemberProperty.fromGjm(GameJoinMemberModelEx gjm) {
     memberId = gjm.mId;
     gjmId = gjm.id;
     readName = gjm.name;

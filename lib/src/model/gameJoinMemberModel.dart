@@ -12,7 +12,6 @@ class GameJoinMemberModel extends BaseModel {
     mId = map[columnMemberId] as int;
     number = map[columnNumber] as int;
   }
-
   int drId;
   int mId;
   int number; // スコア表の並び順
@@ -26,11 +25,5 @@ class GameJoinMemberModel extends BaseModel {
       columnNumber: number
     };
     return map;
-  }
-}
-
-class GameJoinMemberAccessor extends BaseTableAccessor {
-  GameJoinMemberAccessor() {
-    tableName = tableGameJoinMember;
   }
 }

@@ -33,9 +33,3 @@ class ScoreModel extends BaseModel {
     return map;
   }
 }
-
-class ScoreAccessor extends BaseTableAccessor {
-  ScoreAccessor() {
-    tableName = tableScore;
-  }
-}

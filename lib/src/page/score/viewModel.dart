@@ -2,11 +2,11 @@ import 'dart:core';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app/src/accessor/table/gameJoinMemberProvider.dart';
+import 'package:flutter_app/src/accessor/table/gameSettingProvider.dart';
+import 'package:flutter_app/src/accessor/table/scoreProvider.dart';
 import 'package:flutter_app/src/model/gameSettingModel.dart';
 import 'package:flutter_app/src/model/scoreModel.dart';
-import 'package:flutter_app/src/provider/gameJoinMemberProvider.dart';
-import 'package:flutter_app/src/provider/gameSettingProvider.dart';
-import 'package:flutter_app/src/provider/scoreProvider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // TODO
@@ -237,14 +237,14 @@ class ScoreViewModel extends ChangeNotifier {
   }
 
   void listenGameSetting() {
-    final provider = ref.read(gameSettingProvider);
-    if (provider.isInitialized) {
-      if (provider.drIdMap.containsKey(drId)) {
-        gameSettingModel = provider.drIdMap[drId];
+    final gsa = ref.read(gameSettingAccessor);
+    if (gsa.isInitialized) {
+      if (gsa.drIdMap.containsKey(drId)) {
+        gameSettingModel = gsa.drIdMap[drId];
       }
     }
 
-    ref.listen<GameSettingNotifier>(gameSettingProvider, (previous, next) {
+    ref.listen<GameSettingAccessor>(gameSettingAccessor, (previous, next) {
       if (next.isInitialized) {
         if (next.drIdMap.containsKey(drId)) {
           gameSettingModel = next.drIdMap[drId];
@@ -254,12 +254,12 @@ class ScoreViewModel extends ChangeNotifier {
   }
 
   void listenScore() {
-    final provider = ref.read(scoreProvider);
-    if (provider.scoreViewMap.containsKey(drId)) {
-      renewScore(provider.scoreViewMap[drId]);
+    final accessor = ref.read(scoreAccessor);
+    if (accessor.scoreViewMap.containsKey(drId)) {
+      renewScore(accessor.scoreViewMap[drId]);
       notifyListeners();
     }
-    ref.listen<ScoreNotifier>(scoreProvider, (previous, next) {
+    ref.listen<ScoreAccessor>(scoreAccessor, (previous, next) {
       if (next.scoreViewMap.containsKey(drId)) {
         renewScore(next.scoreViewMap[drId]);
         notifyListeners();
@@ -267,17 +267,17 @@ class ScoreViewModel extends ChangeNotifier {
     });
   }
 
-  void renewScore(DrIdScoreView dIdScoreView) {
+  void renewScore(DayScore dayScore) {
     final totalMap = <int, int>{};
 
     // DBの中のscore表のサイズが現在のスコア表より大きかった作り直す
-    if (rowPropertyList.length <= dIdScoreView.maxGameCount ||
-        joinedCount <= dIdScoreView.maxNumber) {
+    if (rowPropertyList.length <= dayScore.maxGameCount ||
+        joinedCount <= dayScore.maxNumber) {
       rowPropertyList = [];
-      addNewScoreRow(dIdScoreView.maxGameCount + 1);
+      addNewScoreRow(dayScore.maxGameCount + 1);
     }
 
-    dIdScoreView.map.forEach((gameCount, scoreMap) {
+    dayScore.map.forEach((gameCount, scoreMap) {
       scoreMap.forEach((number, scoreModel) {
         rowPropertyList[gameCount].setScoreModel(number, scoreModel);
 
@@ -326,14 +326,14 @@ class ScoreViewModel extends ChangeNotifier {
   }
 
   void listenGjm() {
-    final provider = ref.read(gameJoinMemberProvider);
-    if (provider.isInitialized) {
-      if (provider.drIdMap.containsKey(drId)) {
-        renewGameJoinedMember(provider.drIdMap[drId]);
+    final accessor = ref.read(gameJoinMemberAccessor);
+    if (accessor.isInitialized) {
+      if (accessor.drIdMap.containsKey(drId)) {
+        renewGameJoinedMember(accessor.drIdMap[drId]);
         notifyListeners();
       }
     }
-    ref.listen<GameJoinMemberNotifier>(gameJoinMemberProvider,
+    ref.listen<GameJoinMemberAccessor>(gameJoinMemberAccessor,
         (previous, next) {
       if (next.isInitialized) {
         if (next.drIdMap.containsKey(drId)) {
@@ -346,7 +346,7 @@ class ScoreViewModel extends ChangeNotifier {
     });
   }
 
-  void renewGameJoinedMember(List<GameJoinMemberView> list) {
+  void renewGameJoinedMember(List<GameJoinMemberModelEx> list) {
     // 参加人数に増減がなければ名前だけ書き換える
     if (joinedCount == list.length) {
       list.asMap().forEach((index, value) {
@@ -465,8 +465,8 @@ class ScoreViewModel extends ChangeNotifier {
         : scoreCastInt(rowProperty.getScoreText(col));
     final sm =
         ScoreModel(drId: drId, gameCount: row, number: col, score: inputScore);
-    final provider = ref.read(scoreProvider);
-    provider.upsert(sm);
+    final accessor = ref.read(scoreAccessor);
+    accessor.upsert(sm);
   }
 
   bool validateRowScoreSum(int row) {

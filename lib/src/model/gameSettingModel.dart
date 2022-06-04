@@ -57,9 +57,3 @@ class GameSettingModel extends BaseModel {
     return map;
   }
 }
-
-class GameSettingAccessor extends BaseTableAccessor {
-  GameSettingAccessor() {
-    tableName = tableGameSetting;
-  }
-}

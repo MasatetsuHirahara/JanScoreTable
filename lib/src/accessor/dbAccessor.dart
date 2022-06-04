@@ -6,23 +6,21 @@ import 'package:sqflite/sqflite.dart';
 import '../common/const.dart';
 import '../model/baseModel.dart';
 
-final dbProvider = ChangeNotifierProvider(
-  (ref) => DbModel(),
+final dbAccessor = ChangeNotifierProvider(
+  (ref) => DBAccessor(),
 );
 
-class DbModel extends ChangeNotifier {
-  DbModel._internal() {
-    open('exsample.db');
+class DBAccessor extends ChangeNotifier {
+  factory DBAccessor() => _cache;
+  DBAccessor._internal() {
+    open('jan_score_table.db');
   }
-  factory DbModel() {
-    return _cache;
-  }
-  static final DbModel _cache = DbModel._internal();
+  static final DBAccessor _cache = DBAccessor._internal();
+
   Database db;
   bool isOpen = false;
 
   Future open(String path) async {
-    final p = getDatabasesPath();
     db = await openDatabase(join(await getDatabasesPath(), path),
         version: 1, onCreate: _onCreate, onConfigure: _onConfigure);
 
@@ -98,13 +96,13 @@ create table if not exists $tableMember (
     await db.execute('PRAGMA foreign_keys = ON');
   }
 
-  Future<BaseModel> insert(BaseTableAccessor bta, BaseModel bt) async {
-    bt.id = await db.insert(bta.tableName, bt.toMap());
+  Future<BaseModel> insert(String tableName, BaseModel bt) async {
+    bt.id = await db.insert(tableName, bt.toMap());
     return bt;
   }
 
-  Future<BaseModel> upsert(BaseTableAccessor bta, BaseModel bt) async {
-    bt.id = await db.insert(bta.tableName, bt.toMap(),
+  Future<BaseModel> upsert(String tableName, BaseModel bt) async {
+    bt.id = await db.insert(tableName, bt.toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace);
     return bt;
   }
@@ -113,33 +111,30 @@ create table if not exists $tableMember (
     return db.rawQuery(sql);
   }
 
-  Future<List<Map>> get(BaseTableAccessor bta,
+  Future<List<Map>> get(String tableName,
       {List<String> columns,
       String where,
       List<Object> whereArgs,
       String orderBy}) async {
-    return db.query(bta.tableName,
+    return db.query(tableName,
         columns: columns, where: where, whereArgs: whereArgs, orderBy: orderBy);
   }
 
-  Future<int> delete(BaseTableAccessor bta, BaseModel bt) async {
-    final column = bta.columnId;
-    return db.delete(bta.tableName, where: '$column = ?', whereArgs: [bt.id]);
+  Future<int> delete(String tableName, BaseModel bt) async {
+    return db.delete(tableName, where: '$columnId = ?', whereArgs: [bt.id]);
   }
 
-  Future<int> deleteIds(BaseTableAccessor bta, List<int> ids) async {
-    final column = bta.columnId;
-    return db.delete(bta.tableName, where: '$column = ?', whereArgs: ids);
+  Future<int> deleteIds(String tableName, List<int> ids) async {
+    return db.delete(tableName, where: '$columnId = ?', whereArgs: ids);
   }
 
   Future<int> rawDelete(String sql) async {
     return db.rawDelete(sql);
   }
 
-  Future<int> update(BaseTableAccessor bta, BaseModel bt) async {
-    final column = bta.columnId;
-    return db.update(bta.tableName, bt.toMap(),
-        where: '$column = ?', whereArgs: [bt.id]);
+  Future<int> update(String tableName, BaseModel bt) async {
+    return db.update(tableName, bt.toMap(),
+        where: '$columnId = ?', whereArgs: [bt.id]);
   }
 
   Future close() async => db.close();

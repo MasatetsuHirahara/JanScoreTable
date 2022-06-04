@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app/src/provider/chipScoreProvider.dart';
+import 'package:flutter_app/src/accessor/table/chipScoreProvider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 const cellHeight = 50.0;
@@ -17,7 +17,7 @@ class ChipRowProperty {
   TextEditingController controller = TextEditingController();
   FocusNode focusNode = FocusNode();
 
-  ChipScoreView chipScoreView;
+  ChipScoreModelEx chipScoreView;
 
   bool validateInput() {
     // １文字単位の制限しかできなかったのでここでバリデート
@@ -61,11 +61,11 @@ class ChipScoreViewModel extends ChangeNotifier {
   List<ChipRowProperty> chipRowList = [];
 
   void listenChipScore() {
-    localFunc(ChipScoreNotifier p) {
-      if (p.isInitialized) {
-        if (p.drIdMap.containsKey(drId)) {
+    localFunc(ChipScoreAccessor accessor) {
+      if (accessor.isInitialized) {
+        if (accessor.drIdMap.containsKey(drId)) {
           chipRowList = [];
-          for (final csv in p.drIdMap[drId]) {
+          for (final csv in accessor.drIdMap[drId]) {
             chipRowList.add(ChipRowProperty(csv));
           }
           notifyListeners();
@@ -73,10 +73,10 @@ class ChipScoreViewModel extends ChangeNotifier {
       }
     }
 
-    final provider = ref.read(chipScoreProvider);
-    localFunc(provider);
+    final accessor = ref.read(chipScoreAccessor);
+    localFunc(accessor);
 
-    ref.listen<ChipScoreNotifier>(chipScoreProvider, (previous, next) {
+    ref.listen<ChipScoreAccessor>(chipScoreAccessor, (previous, next) {
       localFunc(next);
     });
   }
@@ -108,10 +108,10 @@ class ChipScoreViewModel extends ChangeNotifier {
   }
 
   Future saveScore() async {
-    final provider = ref.read(chipScoreProvider);
+    final accessor = ref.read(chipScoreAccessor);
 
     for (final csv in chipRowList) {
-      await provider.upsert(csv.chipScoreView);
+      await accessor.upsert(csv.chipScoreView);
     }
   }
 }

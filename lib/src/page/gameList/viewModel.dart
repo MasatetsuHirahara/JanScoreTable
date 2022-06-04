@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../accessor/table/dayRecodeAccessor.dart';
+import '../../accessor/table/gameJoinMemberProvider.dart';
+import '../../accessor/table/gameSettingProvider.dart';
 import '../../model/dayRecodeModel.dart';
 import '../../model/gameSettingModel.dart';
-import '../../provider/dayRecodeProvider.dart';
-import '../../provider/gameJoinMemberProvider.dart';
-import '../../provider/gameSettingProvider.dart';
 
 final gameListViewModel = ChangeNotifierProvider.autoDispose((ref) {
   return GameListViewModel(ref);
@@ -22,17 +22,17 @@ class GameListViewModel extends ChangeNotifier {
   List<DayRecodeModel> drList = [];
 
   void watchDayRecode() {
-    final p = ref.watch(dayRecodeProvider);
-    if (p.isInitialized) {
-      drList = p.drList;
+    final dra = ref.watch(dayRecodeAccessor);
+    if (dra.isInitialized) {
+      drList = dra.drList;
       notifyListeners();
     }
   }
 
   void watchGameSetting() {
-    final p = ref.watch(gameSettingProvider);
-    if (p.isInitialized) {
-      p.drIdMap.forEach((key, value) {
+    final accessor = ref.watch(gameSettingAccessor);
+    if (accessor.isInitialized) {
+      accessor.drIdMap.forEach((key, value) {
         if (drPropertyMap.containsKey(key)) {
           drPropertyMap[key].gameSettingModel = value;
         } else {
@@ -44,13 +44,13 @@ class GameListViewModel extends ChangeNotifier {
   }
 
   void watchGameJoinModel() {
-    final p = ref.watch(gameJoinMemberProvider);
-    if (p.isInitialized) {
-      p.drIdMap.forEach((key, value) {
+    final accessor = ref.watch(gameJoinMemberAccessor);
+    if (accessor.isInitialized) {
+      accessor.drIdMap.forEach((key, value) {
         if (drPropertyMap.containsKey(key)) {
-          drPropertyMap[key].memberList = value;
+          drPropertyMap[key].gameJoinMemberList = value;
         } else {
-          drPropertyMap[key] = DrProperty()..memberList = value;
+          drPropertyMap[key] = DrProperty()..gameJoinMemberList = value;
         }
       });
       notifyListeners();
@@ -74,8 +74,8 @@ class GameListViewModel extends ChangeNotifier {
         rProperty.kind = kind.gameName;
       }
 
-      for (final m in dp.memberList) {
-        rProperty.nameList.add(m.name);
+      for (final gjm in dp.gameJoinMemberList) {
+        rProperty.nameList.add(gjm.name);
       }
 
       ret.add(rProperty);
@@ -89,13 +89,13 @@ class GameListViewModel extends ChangeNotifier {
       return;
     }
 
-    ref.read(dayRecodeProvider).delete(drList[index]);
+    ref.read(dayRecodeAccessor).delete(drList[index]);
   }
 }
 
 class DrProperty {
   GameSettingModel gameSettingModel;
-  List<GameJoinMemberView> memberList = [];
+  List<GameJoinMemberModelEx> gameJoinMemberList = [];
 }
 
 class CardProperty {
