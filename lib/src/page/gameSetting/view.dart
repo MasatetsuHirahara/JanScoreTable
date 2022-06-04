@@ -10,9 +10,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../widget/dialog.dart';
 
-// TODO
-// focusnodeがふようになった
-
 const buttonWidth = 150.0;
 
 class GameSettingPage extends ConsumerWidget {
@@ -179,6 +176,7 @@ Widget chipRateRow(GameSettingViewModel vm) {
 
 Widget memberRow(BuildContext context, GameSettingViewModel vm, int index) {
   final mp = vm.mpList[index];
+  final isLast = vm.mpList.length - 1 <= index;
   return Padding(
     padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
     child: Column(
@@ -197,7 +195,8 @@ Widget memberRow(BuildContext context, GameSettingViewModel vm, int index) {
                     width: 150.w,
                     child: TextField(
                       focusNode: mp.focusNode,
-                      textInputAction: TextInputAction.next,
+                      textInputAction:
+                          isLast ? TextInputAction.done : TextInputAction.next,
                       controller: mp.controller,
                       textAlign: TextAlign.center,
                       inputFormatters: <TextInputFormatter>[
@@ -205,6 +204,12 @@ Widget memberRow(BuildContext context, GameSettingViewModel vm, int index) {
                       ],
                       onChanged: (name) {
                         mp.clearId();
+                      },
+                      onSubmitted: (value) {
+                        if (!isLast) {
+                          FocusScope.of(context)
+                              .requestFocus(vm.mpList[index + 1].focusNode);
+                        }
                       },
                     ),
                   ),
