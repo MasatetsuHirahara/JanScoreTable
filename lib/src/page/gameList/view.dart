@@ -29,8 +29,15 @@ class GameListPage extends ConsumerWidget {
                         Navigator.of(context).push<dynamic>(ScorePage.route(
                             drId: cardPropertyList[index].dr.id));
                       },
-                      onLongTap: () {
-                        vm.deleteDayRecode(index);
+                      onLongTap: () async {
+                        final result = await showDialog<bool>(
+                            context: context,
+                            builder: (context) {
+                              return const DeleteDialog('削除してよろしいですか？');
+                            });
+                        if (result) {
+                          vm.deleteDayRecode(index);
+                        }
                       }),
                 );
               }),
@@ -57,6 +64,13 @@ class DayRecodeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      elevation: 0,
+      shape: const RoundedRectangleBorder(
+        side: BorderSide(
+          color: Colors.black,
+        ),
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
       child: Dismissible(
         key: UniqueKey(),
         background: Container(
