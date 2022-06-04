@@ -39,7 +39,9 @@ class SearchNamePage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              InputCard(vm.inputProperty, (value) {}),
+              InputCard(vm.inputProperty, (value) {
+                vm.onChangeName();
+              }),
               // Container(
               //   width: _screenSize.width,
               //   padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
@@ -116,7 +118,7 @@ class InputCard extends StatelessWidget {
           decoration: const InputDecoration(
             prefixIcon: Icon(Icons.search),
           ),
-          onSubmitted: valueChanged,
+          onChanged: valueChanged,
         ),
       ),
     );

@@ -1,39 +1,45 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_app/src/accessor/recentyMember.dart';
+import 'package:flutter_app/src/accessor/searchMember.dart';
 import 'package:flutter_app/src/model/memberModel.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 const recentlyMemberNum = 8;
 
-final _recentlyMember =
-    ChangeNotifierProvider.family<RecentlyMemberAccessor, int>((ref, limit) {
-  return RecentlyMemberAccessor(ref, limit);
+final _searchMember =
+    ChangeNotifierProvider.family<SearchMemberAccessor, int>((ref, limit) {
+  return SearchMemberAccessor(ref);
 });
 
 class SearchNameViewModel extends ChangeNotifier {
   SearchNameViewModel(this.ref) {
-    watchRecentlyMember();
+    getMember();
   }
 
   Ref ref;
   InputProperty inputProperty = InputProperty();
   List<ResultProperty> resultPropertyList = [];
 
-  void watchRecentlyMember() {
-    final accessor = ref.watch(_recentlyMember(recentlyMemberNum));
+  Future<void> getMember() async {
+    final memberList = await ref
+        .read(_searchMember(recentlyMemberNum))
+        .get(inputProperty.controller.text, recentlyMemberNum);
 
     resultPropertyList = [];
-    for (final m in accessor.memberList) {
+    for (final m in memberList) {
       resultPropertyList.add(ResultProperty.fromMember(m));
     }
 
     notifyListeners();
   }
+
+  void onChangeName() {
+    getMember();
+  }
 }
 
 class InputProperty {
   InputProperty();
-  TextEditingController controller = TextEditingController();
+  TextEditingController controller = TextEditingController()..text = '';
 }
 
 class ResultProperty {
