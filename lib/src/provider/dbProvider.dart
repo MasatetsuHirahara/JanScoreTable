@@ -23,7 +23,7 @@ class DbModel extends ChangeNotifier {
 
   Future open(String path) async {
     final p = getDatabasesPath();
-    db = await openDatabase(join(await getDatabasesPath(), 'exsample.db'),
+    db = await openDatabase(join(await getDatabasesPath(), path),
         version: 1, onCreate: _onCreate, onConfigure: _onConfigure);
 
     // open待ちがいる可能性があるので通知
@@ -120,10 +120,6 @@ create table if not exists $tableMember (
       String orderBy}) async {
     return db.query(bta.tableName,
         columns: columns, where: where, whereArgs: whereArgs, orderBy: orderBy);
-  }
-
-  Future<List<Map>> getWithRawQuery(String sql) {
-    return db.rawQuery(sql);
   }
 
   Future<int> delete(BaseTableAccessor bta, BaseModel bt) async {

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/src/model/gameSettingModel.dart';
 import 'package:flutter_app/src/page/gameSetting/viewModel.dart';
-import 'package:flutter_app/src/page/searchName.dart';
+import 'package:flutter_app/src/page/searchName/view.dart';
 import 'package:flutter_app/src/widget/text.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -45,7 +45,7 @@ class GameSettingPage extends ConsumerWidget {
         ),
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+            padding: const EdgeInsets.all(8),
             child: SingleChildScrollView(
               child: Container(
                 decoration: BoxDecoration(
