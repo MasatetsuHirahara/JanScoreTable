@@ -6,9 +6,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dbAccessor.dart';
 
 class RecentlyMemberAccessor extends ChangeNotifier {
-  RecentlyMemberAccessor(this.ref);
+  RecentlyMemberAccessor(this.ref, int limit) {
+    get(limit);
+  }
   Ref ref;
   List<MemberModel> memberList = [];
+
+  @override
+  void dispose() {
+    print('dispose RecentlyMemberAccessor');
+    super.dispose();
+  }
 
   Future<void> get(int limit) async {
     final dba = ref.read(dbAccessor);
@@ -16,7 +24,7 @@ class RecentlyMemberAccessor extends ChangeNotifier {
       return;
     }
 
-    final sql = 'SELECT * FROM'
+    final sql = 'SELECT * FROM '
         '$tableMember '
         'ORDER BY $columnLastJoin DESC '
         'LIMIT $limit';

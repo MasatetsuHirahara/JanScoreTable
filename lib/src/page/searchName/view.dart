@@ -65,9 +65,8 @@ class SearchNamePage extends ConsumerWidget {
 }
 
 class ResultCard extends StatelessWidget {
-  ResultCard(this.resultProperty);
-
-  ResultProperty resultProperty;
+  const ResultCard(this.resultProperty);
+  final ResultProperty resultProperty;
 
   @override
   Widget build(BuildContext context) {
@@ -102,16 +101,19 @@ class InputCard extends StatelessWidget {
         ),
         borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
-      child: TextField(
-        controller: property.controller,
-        textAlign: TextAlign.center,
-        inputFormatters: <TextInputFormatter>[
-          FilteringTextInputFormatter.singleLineFormatter,
-        ],
-        decoration: const InputDecoration(
-          prefixIcon: Icon(Icons.search),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
+        child: TextField(
+          controller: property.controller,
+          textAlign: TextAlign.left,
+          inputFormatters: <TextInputFormatter>[
+            FilteringTextInputFormatter.singleLineFormatter,
+          ],
+          decoration: const InputDecoration(
+            prefixIcon: Icon(Icons.search),
+          ),
+          onSubmitted: valueChanged,
         ),
-        onSubmitted: valueChanged,
       ),
     );
   }
