@@ -7,6 +7,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../widget/text.dart';
 
+final _viewModel = ChangeNotifierProvider.autoDispose
+    .family<ChipScoreViewModel, int>((ref, drId) {
+  return ChipScoreViewModel(ref, drId);
+});
+
 class ChipScorePage extends ConsumerWidget {
   static Route<dynamic> route({
     @required int drId,
@@ -28,7 +33,7 @@ class ChipScorePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // 引数処理
     drId = ModalRoute.of(context).settings.arguments as int;
-    final provider = ref.watch(chipScoreViewProvider(drId));
+    final provider = ref.watch(_viewModel(drId));
     final isInvalid = provider.getTotal() != 0;
 
     return Scaffold(

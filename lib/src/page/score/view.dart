@@ -24,6 +24,11 @@ const speechBubbleWidthDiff = 10.0;
 // TODO
 // スクロール
 
+final _viewModel =
+    ChangeNotifierProvider.autoDispose.family<ScoreViewModel, int>((ref, drId) {
+  return ScoreViewModel(ref, drId);
+});
+
 class ScorePage extends ConsumerWidget {
   static Route<dynamic> route({
     @required int drId,
@@ -63,7 +68,7 @@ class ScorePage extends ConsumerWidget {
     drId = ModalRoute.of(context).settings.arguments as int;
 
     // プロバイダ
-    final pProvider = ref.watch(scoreViewProvider(drId));
+    final pProvider = ref.watch(_viewModel(drId));
 
     // 必要なら設定画面に遷移
     goGsIfNeed(context, ref);

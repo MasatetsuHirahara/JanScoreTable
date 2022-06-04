@@ -10,7 +10,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../accessor/table/chipScoreProvider.dart';
 import '../../accessor/table/scoreProvider.dart';
 
-final adjustmentViewProvider = ChangeNotifierProvider.autoDispose
+final _viewModel = ChangeNotifierProvider.autoDispose
     .family<AdjustmentViewModel, int>((ref, drId) {
   return AdjustmentViewModel(ref, drId);
 });
@@ -270,7 +270,7 @@ class AdjustmentPage extends ConsumerWidget {
     drId = ModalRoute.of(context).settings.arguments as int;
 
     // provider処理
-    final provider = ref.watch(adjustmentViewProvider(drId));
+    final provider = ref.watch(_viewModel(drId));
 
     return Scaffold(
         appBar: AppBar(

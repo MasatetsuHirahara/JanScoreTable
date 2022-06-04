@@ -15,11 +15,6 @@ import '../../model/memberModel.dart';
 const int defaultMemberNum = 4;
 const int maxMemberNum = 5;
 
-final gameSettingViewModel = ChangeNotifierProvider.autoDispose
-    .family<GameSettingViewModel, int>((ref, drId) {
-  return GameSettingViewModel(ref, drId);
-});
-
 class GameSettingViewModel extends ChangeNotifier {
   GameSettingViewModel(this.ref, this.drId) {
     for (var i = 0; i < defaultMemberNum; i++) {

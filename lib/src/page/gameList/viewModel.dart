@@ -7,10 +7,6 @@ import '../../accessor/table/gameSettingProvider.dart';
 import '../../model/dayRecodeModel.dart';
 import '../../model/gameSettingModel.dart';
 
-final gameListViewModel = ChangeNotifierProvider.autoDispose((ref) {
-  return GameListViewModel(ref);
-});
-
 class GameListViewModel extends ChangeNotifier {
   GameListViewModel(this.ref) {
     watchDayRecode();

@@ -198,12 +198,6 @@ class ScoreCellProperty {
   }
 }
 
-// viewModel
-final scoreViewProvider =
-    ChangeNotifierProvider.autoDispose.family<ScoreViewModel, int>((ref, drId) {
-  return ScoreViewModel(ref, drId);
-});
-
 const maxGame = 30;
 const defaultGameCount = 1;
 const defaultJoinedCount = 4;

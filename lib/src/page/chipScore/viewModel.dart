@@ -5,11 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 const cellHeight = 50.0;
 
-final chipScoreViewProvider = ChangeNotifierProvider.autoDispose
-    .family<ChipScoreViewModel, int>((ref, drId) {
-  return ChipScoreViewModel(ref, drId);
-});
-
 class ChipRowProperty {
   ChipRowProperty(this.chipScoreView) {
     controller.text = chipScoreView.scoreString;

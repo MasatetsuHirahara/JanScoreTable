@@ -7,6 +7,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 // TODO
 //　検索
 
+final _viewModel = ChangeNotifierProvider.autoDispose((ref) {
+  return SearchNameViewModel(ref);
+});
+
 class SearchNamePage extends ConsumerWidget {
   static Route<dynamic> route() {
     return MaterialPageRoute<dynamic>(
@@ -20,7 +24,7 @@ class SearchNamePage extends ConsumerWidget {
     // 画面サイズ
     var _screenSize = MediaQuery.of(context).size;
 
-    final vm = ref.watch(searchNameViewModel);
+    final vm = ref.watch(_viewModel);
 
     return Scaffold(
       appBar: AppBar(

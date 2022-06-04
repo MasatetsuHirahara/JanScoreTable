@@ -44,7 +44,7 @@ extension numberColorExtension on numberColor {
   }
 }
 
-final scoreChartViewProvider = ChangeNotifierProvider.autoDispose
+final _viewModel = ChangeNotifierProvider.autoDispose
     .family<ScoreChartViewModel, int>((ref, drId) {
   return ScoreChartViewModel(ref, drId);
 });
@@ -192,7 +192,7 @@ class ScoreChartPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // 引数処理
     drId = ModalRoute.of(context).settings.arguments as int;
-    final provider = ref.watch(scoreChartViewProvider(drId));
+    final provider = ref.watch(_viewModel(drId));
     final screenSize = MediaQuery.of(context).size;
 
     return Scaffold(

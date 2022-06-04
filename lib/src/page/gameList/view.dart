@@ -6,10 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../widget/dialog.dart';
 
+final _viewModel = ChangeNotifierProvider.autoDispose((ref) {
+  return GameListViewModel(ref);
+});
+
 class GameListPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vm = ref.watch(gameListViewModel);
+    final vm = ref.watch(_viewModel);
 
     final cardPropertyList = vm.getProperty();
     return Scaffold(

@@ -10,10 +10,6 @@ final _recentlyMember =
   return RecentlyMemberAccessor(ref, limit);
 });
 
-final searchNameViewModel = ChangeNotifierProvider.autoDispose((ref) {
-  return SearchNameViewModel(ref);
-});
-
 class SearchNameViewModel extends ChangeNotifier {
   SearchNameViewModel(this.ref) {
     watchRecentlyMember();

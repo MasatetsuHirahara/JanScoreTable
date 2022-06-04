@@ -12,6 +12,11 @@ import '../../widget/dialog.dart';
 
 const buttonWidth = 150.0;
 
+final _viewModel = ChangeNotifierProvider.autoDispose
+    .family<GameSettingViewModel, int>((ref, drId) {
+  return GameSettingViewModel(ref, drId);
+});
+
 class GameSettingPage extends ConsumerWidget {
   static Route<dynamic> route({
     @required int drId,
@@ -32,7 +37,7 @@ class GameSettingPage extends ConsumerWidget {
     // 引数処理
     final drId = ModalRoute.of(context).settings.arguments as int;
 
-    final vm = ref.watch(gameSettingViewModel(drId));
+    final vm = ref.watch(_viewModel(drId));
 
     return Scaffold(
         resizeToAvoidBottomInset: true,
