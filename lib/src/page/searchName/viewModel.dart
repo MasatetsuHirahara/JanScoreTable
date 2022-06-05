@@ -45,10 +45,11 @@ class InputProperty {
 class ResultProperty {
   ResultProperty();
   ResultProperty.fromMember(MemberModel member) {
+    id = member.id;
     name = member.name;
     lastDay = member.lastJoin;
   }
-
+  int id;
   String name;
   String lastDay;
 }

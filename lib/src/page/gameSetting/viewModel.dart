@@ -101,6 +101,9 @@ class GameSettingViewModel extends ChangeNotifier {
 
   void setMpList(int index, int id) {
     final m = ref.read(memberAccessor).recodeMap[id];
+    if (m == null) {
+      return;
+    }
     mpList[index].memberId = m.id;
     mpList[index].controller.text = m.name;
     notifyListeners();

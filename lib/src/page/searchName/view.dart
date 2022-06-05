@@ -21,9 +21,6 @@ class SearchNamePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 画面サイズ
-    var _screenSize = MediaQuery.of(context).size;
-
     final vm = ref.watch(_viewModel);
 
     return Scaffold(
@@ -31,7 +28,7 @@ class SearchNamePage extends ConsumerWidget {
         title: const Text('名前検索'),
         leading: IconButton(
           icon: const Icon(Icons.clear),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(context).pop(0),
         ),
       ),
       body: SafeArea(
@@ -42,25 +39,20 @@ class SearchNamePage extends ConsumerWidget {
               InputCard(vm.inputProperty, (value) {
                 vm.onChangeName();
               }),
-              // Container(
-              //   width: _screenSize.width,
-              //   padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-              //   alignment: Alignment.center,
-              //   child: TextField(
-              //     controller: nameController,
-              //     inputFormatters: <TextInputFormatter>[
-              //       FilteringTextInputFormatter.singleLineFormatter,
-              //     ],
-              //     decoration: InputDecoration(
-              //       prefixIcon: Icon(Icons.search),
-              //     ),
-              //   ),
-              // ),
+              const SizedBox(
+                height: 8,
+              ),
               ListView.builder(
                   shrinkWrap: true,
                   itemCount: vm.resultPropertyList.length,
                   itemBuilder: (context, index) {
-                    return ResultCard(vm.resultPropertyList[index]);
+                    return ResultCard(
+                      vm.resultPropertyList[index],
+                      () {
+                        Navigator.of(context)
+                            .pop(vm.resultPropertyList[index].id);
+                      },
+                    );
                   }),
             ],
           ),
@@ -71,8 +63,9 @@ class SearchNamePage extends ConsumerWidget {
 }
 
 class ResultCard extends StatelessWidget {
-  const ResultCard(this.resultProperty);
+  const ResultCard(this.resultProperty, this.onTap);
   final ResultProperty resultProperty;
+  final GestureTapCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -87,6 +80,7 @@ class ResultCard extends StatelessWidget {
       child: ListTile(
         title: Text(resultProperty.name),
         trailing: Text(resultProperty.lastDay),
+        onTap: onTap,
       ),
     );
   }
