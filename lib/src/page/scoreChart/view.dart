@@ -1,11 +1,10 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app/src/page/scoreChart/viewModel.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../accessor/table/gameJoinMemberProvider.dart';
-import '../../accessor/table/scoreProvider.dart';
 import '../../widget/text.dart';
 
 enum numberColor {
@@ -49,128 +48,7 @@ final _viewModel = ChangeNotifierProvider.autoDispose
   return ScoreChartViewModel(ref, drId);
 });
 
-class GraphLineProperty {
-  GraphLineProperty(this.name);
-  GraphLineProperty.fromChartData(this.chartBarData);
-
-  LineChartBarData chartBarData;
-  String name;
-}
-
-class ScoreChartViewModel extends ChangeNotifier {
-  ScoreChartViewModel(this.ref, this.drId) {
-    listenGameJoinedMember();
-    listenScore();
-  }
-  Ref ref;
-  int drId;
-  double maxX = 0;
-  double maxY = 0;
-  double minY = 0;
-
-  List<LineChartBarData> chartBarDataList = [];
-  List<String> nameList = [];
-  @override
-  void dispose() {
-    print('dipose ScoreChartViewModel');
-  }
-
-  void listenGameJoinedMember() {
-    localFunc(GameJoinMemberAccessor p) {
-      if (p.drIdMap.containsKey(drId)) {
-        final memberList = p.drIdMap[drId];
-        for (var i = 0; i < memberList.length; i++) {
-          if (nameList.length <= i) {
-            nameList.add(memberList[i].name);
-            continue;
-          } else {
-            nameList[i] = memberList[i].name;
-          }
-        }
-      }
-
-      notifyListeners();
-    }
-
-    final accessor = ref.read(gameJoinMemberAccessor);
-    if (accessor.isInitialized) {
-      localFunc(accessor);
-    }
-
-    ref.listen<GameJoinMemberAccessor>(gameJoinMemberAccessor,
-        (previous, next) {
-      if (next.isInitialized) {
-        localFunc(next);
-      }
-    });
-  }
-
-  void chaneMinMaxYIfNeed(double src) {
-    if (minY > src) {
-      minY = src;
-      return;
-    }
-
-    if (maxY < src) {
-      maxY = src;
-      return;
-    }
-  }
-
-  void listenScore() {
-    // ignore: prefer_function_declarations_over_variables
-    localFunc(ScoreAccessor accessor) {
-      if (accessor.scoreViewMap.containsKey(drId)) {
-        final drIdScoreView = accessor.scoreViewMap[drId];
-        maxX = drIdScoreView.maxGameCount + 1.0;
-
-        initChartBarDataList(drIdScoreView.maxNumber + 1);
-        for (var i = 0; i <= drIdScoreView.maxGameCount; i++) {
-          for (var j = 0; j <= drIdScoreView.maxNumber; j++) {
-            // yPointは累積になるようにする
-            if (drIdScoreView.map[i].containsKey(j) == false) {
-              continue;
-            }
-            if (drIdScoreView.map[i][j].scoreString == '') {
-              continue;
-            }
-            var yPoint = drIdScoreView.map[i][j].score.toDouble();
-            yPoint += chartBarDataList[j].spots[i].y;
-
-            // MinMaxの更新
-            chaneMinMaxYIfNeed(yPoint);
-
-            final flSpot = FlSpot((i + 1).toDouble(), yPoint);
-            chartBarDataList[j].spots.add(flSpot);
-          }
-        }
-      }
-      notifyListeners();
-    }
-
-    final accessor = ref.read(scoreAccessor);
-    if (accessor.isInitialized) {
-      localFunc(accessor);
-    }
-
-    ref.listen<ScoreAccessor>(scoreAccessor, (previous, next) {
-      if (next.isInitialized) {
-        localFunc(next);
-      }
-    });
-  }
-
-  void initChartBarDataList(int num) {
-    chartBarDataList = [];
-    for (var i = 0; i < num; i++) {
-      final data = LineChartBarData(
-          spots: [FlSpot(0, 0)],
-          colors: [numberColorExtension.fromInt(i).color]);
-      chartBarDataList.add(data);
-    }
-  }
-}
-
+// ignore: must_be_immutable
 class ScoreChartPage extends ConsumerWidget {
   static Route<dynamic> route({
     @required int drId,
@@ -184,11 +62,6 @@ class ScoreChartPage extends ConsumerWidget {
   int drId;
 
   @override
-  void dispose() {
-    print('dispose !!!!!!!!');
-  }
-
-  @override
   Widget build(BuildContext context, WidgetRef ref) {
     // 引数処理
     drId = ModalRoute.of(context).settings.arguments as int;
@@ -197,9 +70,9 @@ class ScoreChartPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('スコアグラフ'),
+        title: const Text('スコアグラフ'),
         leading: IconButton(
-          icon: Icon(Icons.clear),
+          icon: const Icon(Icons.clear),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -218,7 +91,7 @@ class ScoreChartPage extends ConsumerWidget {
                     ? chart(provider)
                     : Expanded(
                         child: Container(
-                        child: Align(
+                        child: const Align(
                           alignment: Alignment.center,
                           child: HeadingText('表示するデータがありません'),
                         ),
@@ -264,7 +137,7 @@ class ScoreChartPage extends ConsumerWidget {
 Widget chart(ScoreChartViewModel vm) {
   return Expanded(
     child: Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16),
       child: LineChart(
         LineChartData(
           baselineY: 0,

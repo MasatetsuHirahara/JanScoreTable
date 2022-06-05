@@ -72,7 +72,7 @@ class GameSettingPage extends ConsumerWidget {
                       Align(
                         alignment: Alignment.center,
                         child: ElevatedButton(
-                          child: ButtonText('保存'),
+                          child: const ButtonText('保存'),
                           onPressed: () async {
                             await vm.tappedSave();
                             Navigator.of(context).pop();
@@ -94,18 +94,18 @@ Widget gameKindRow(GameSettingViewModel vm) {
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-      HeadingText('四麻？三麻？'),
+      const HeadingText('四麻？三麻？'),
       Container(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            NormalText('四麻'),
+            const NormalText('四麻'),
             Radio(
               value: KindValue.YONMA,
               groupValue: groupValue,
               onChanged: vm.setKind,
             ),
-            NormalText('三麻'),
+            const NormalText('三麻'),
             Radio(
               value: KindValue.SANMA,
               groupValue: groupValue,
@@ -122,7 +122,7 @@ Widget rateRow(GameSettingViewModel vm) {
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-      HeadingText('レート'),
+      const HeadingText('レート'),
       Container(
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           Container(
@@ -140,7 +140,7 @@ Widget rateRow(GameSettingViewModel vm) {
                   hintText: '千点あたり',
                 ),
               )),
-          NormalText('G'),
+          const NormalText('G'),
         ]),
       ),
     ],
@@ -151,7 +151,7 @@ Widget chipRateRow(GameSettingViewModel vm) {
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-      HeadingText('チップレート'),
+      const HeadingText('チップレート'),
       Container(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -171,7 +171,7 @@ Widget chipRateRow(GameSettingViewModel vm) {
                     hintText: '1枚あたり',
                   )),
             ),
-            NormalText('G'),
+            const NormalText('G'),
           ],
         ),
       ),

@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class HeadingText extends StatelessWidget {
-  HeadingText(this.text, {this.color = Colors.black});
-  String text;
-  Color color;
+  const HeadingText(this.text, {this.color = Colors.black});
+  final String text;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -21,9 +21,9 @@ class HeadingText extends StatelessWidget {
 }
 
 class NormalText extends StatelessWidget {
-  NormalText(this.text, {this.color = Colors.black});
-  String text;
-  Color color;
+  const NormalText(this.text, {this.color = Colors.black});
+  final String text;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -37,9 +37,27 @@ class NormalText extends StatelessWidget {
   }
 }
 
+class ErrorText extends StatelessWidget {
+  const ErrorText(this.text, {this.color = Colors.red});
+  final String text;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      '$text',
+      style: TextStyle(
+        color: color,
+        fontSize: 16.sp,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+}
+
 class ButtonText extends StatelessWidget {
-  ButtonText(this.text);
-  String text;
+  const ButtonText(this.text);
+  final String text;
   @override
   Widget build(BuildContext context) {
     return Text(
@@ -52,9 +70,9 @@ class ButtonText extends StatelessWidget {
 }
 
 class ScoreText extends StatelessWidget {
-  ScoreText(this.score, {this.trailing});
-  String trailing;
-  int score;
+  const ScoreText(this.score, {this.trailing});
+  final String trailing;
+  final int score;
   @override
   Widget build(BuildContext context) {
     var text = score.toString();

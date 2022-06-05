@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/src/page/gameList/viewModel.dart';
 import 'package:flutter_app/src/page/gameSetting/view.dart';
 import 'package:flutter_app/src/page/score/view.dart';
+import 'package:flutter_app/src/widget/text.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../widget/dialog.dart';
@@ -103,8 +104,8 @@ class DayRecodeCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.max,
           children: <Widget>[
             ListTile(
-              trailing: Text('${property.kind}'),
-              title: Text('${property.dr.day}'),
+              trailing: NormalText('${property.kind}'),
+              title: NormalText('${property.dr.day}'),
               subtitle: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [

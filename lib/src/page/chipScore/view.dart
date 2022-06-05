@@ -12,6 +12,9 @@ final _viewModel = ChangeNotifierProvider.autoDispose
   return ChipScoreViewModel(ref, drId);
 });
 
+const cellHeight = 50.0;
+
+// ignore: must_be_immutable
 class ChipScorePage extends ConsumerWidget {
   static Route<dynamic> route({
     @required int drId,
@@ -25,11 +28,6 @@ class ChipScorePage extends ConsumerWidget {
   int drId;
 
   @override
-  void dispose() {
-    print('dispose !!!!!!!!');
-  }
-
-  @override
   Widget build(BuildContext context, WidgetRef ref) {
     // 引数処理
     drId = ModalRoute.of(context).settings.arguments as int;
@@ -38,9 +36,9 @@ class ChipScorePage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('チップ入力'),
+        title: const Text('チップ入力'),
         leading: IconButton(
-          icon: Icon(Icons.clear),
+          icon: const Icon(Icons.clear),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -67,7 +65,7 @@ class ChipScorePage extends ConsumerWidget {
                 Align(
                   alignment: Alignment.center,
                   child: ElevatedButton(
-                    child: ButtonText('保存'),
+                    child: const ButtonText('保存'),
                     onPressed: isInvalid
                         ? null
                         : () async {
@@ -77,13 +75,8 @@ class ChipScorePage extends ConsumerWidget {
                   ),
                 ),
                 isInvalid
-                    ? Text(
-                        '${provider.getTotal()}枚ずれています',
-                        style: TextStyle(
-                          color: Colors.red,
-                        ),
-                      )
-                    : Text(''),
+                    ? ErrorText('${provider.getTotal()}枚ずれています')
+                    : const Text(''),
               ],
             ),
           ),
