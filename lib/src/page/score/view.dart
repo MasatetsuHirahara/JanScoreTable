@@ -284,7 +284,7 @@ class ScorePage extends ConsumerWidget {
                                     const TextInputType.numberWithOptions(
                                         signed: true, decimal: true),
                                 style: TextStyle(
-                                  color: cellProperty.score >= 0
+                                  color: cellProperty.scoreModel.score >= 0
                                       ? Colors.black
                                       : Colors.red,
                                 ),

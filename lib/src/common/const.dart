@@ -25,6 +25,7 @@ final String columnNumber = 'number';
 final String tableScore = 'score';
 final String columnScore = 'score';
 final String columnGameCount = 'game_count';
+final String columnRank = 'rank';
 
 final String tableChipScore = 'chip_score';
 final String columnChipScpre = 'chip_score';

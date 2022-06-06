@@ -13,192 +13,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 // TODO
 // スコアを毎回全体更新だと遅いかも
 
-class Coordinate {
-  Coordinate(this.row, this.col);
-  int row;
-  int col;
-
-  bool isNotEqual(int row, int col) {
-    return this.row != row || this.col != col;
-  }
-}
-
-class SpeechBubbleProperty {
-  int score = 0;
-  Coordinate coordinate = Coordinate(0, 0);
-  bool isVisible = false;
-  void clear() {
-    isVisible = false;
-    score = 0;
-  }
-
-  void setProperty(int score, int row, int col) {
-    this.score = score;
-    coordinate = Coordinate(row, col);
-    isVisible = true;
-  }
-}
-
-// スコアの1行分のproperty
-class ScoreRowProperty {
-  ScoreRowProperty(int joinedCounter) {
-    addNewScore(joinedCounter);
-  }
-
-  Color color;
-  List<ScoreCellProperty> scoreCellList = [];
-
-  void addNewScore(int num) {
-    for (var i = 0; i < num; i++) {
-      scoreCellList.add(ScoreCellProperty());
-    }
-  }
-
-  void removeLastScore(int num) {
-    for (var i = 0; i < num; i++) {
-      scoreCellList.removeLast();
-    }
-  }
-
-  bool isFull() {
-    for (final s in scoreCellList) {
-      if (s.controller.text == '') {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  String getScoreText(int col) {
-    return scoreCellList[col].controller.text;
-  }
-
-  int getScore(int col) {
-    return scoreCellList[col].score;
-  }
-
-  void setScore(int col, int score) {
-    scoreCellList[col].controller.text = score.toString();
-    scoreCellList[col].score = score;
-  }
-
-  void setScoreModel(int col, ScoreModel score) {
-    scoreCellList[col].controller.text = score.scoreString;
-    scoreCellList[col].score = score.score;
-  }
-
-  void setAllCursorToEnd() {
-    for (final c in scoreCellList) {
-      c.setCursorToEnd();
-    }
-  }
-
-  int getFocusCol() {
-    for (var i = 0; i < scoreCellList.length; i++) {
-      if (scoreCellList[i].focusNode.hasFocus) return i;
-    }
-    return -1;
-  }
-
-  bool validateInputScore(int col) {
-    return scoreCellList[col].validateInput();
-  }
-
-  void clearScore(int col) {
-    scoreCellList[col].clearScore();
-  }
-
-  bool isNotNeedSpeechBubble(int notIncludeCol, int kindValue) {
-    // ゲーム人数-1　入力されていれば補完できる
-    // タップされたセルはカウントしない
-    var cnt = 0;
-    for (var i = 0; i < scoreCellList.length; i++) {
-      if (i == notIncludeCol) {
-        continue;
-      }
-      if (scoreCellList[i].controller.text != '') {
-        cnt++;
-        if (cnt >= kindValue - 1) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
-  int sumScore() {
-    var ret = 0;
-    for (final s in scoreCellList) {
-      ret += s.score;
-    }
-    return ret;
-  }
-
-  bool validateScoreSum(int kind) {
-    var total = 0;
-    var cnt = 0;
-    for (final c in scoreCellList) {
-      total += c.score;
-      if (c.controller.text != '') {
-        cnt++;
-      }
-    }
-
-    if (total != 0) {
-      return false;
-    }
-
-    return true;
-  }
-
-  void setRowColor(Color color) {
-    this.color = color;
-  }
-}
-
-// スコア1セル分のproperty
-class ScoreCellProperty {
-  ScoreCellProperty() {
-    controller.addListener(() {});
-  }
-  int score = 0; // 補助　textFieldを正とする
-  int row;
-  int col;
-  TextEditingController controller = TextEditingController();
-  FocusNode focusNode = FocusNode();
-
-  VoidCallback focusOut;
-
-  void setFocusOut(VoidCallback f) {
-    controller.removeListener(focusOut);
-    focusOut = f;
-    controller.addListener(focusOut);
-  }
-
-  void setCursorToEnd() {
-    controller.selection = TextSelection.fromPosition(
-        TextPosition(offset: controller.text.length));
-  }
-
-  bool isChanged() {
-    if (focusNode.hasFocus) {
-      return false;
-    }
-    return score != scoreCastInt(controller.text);
-  }
-
-  bool validateInput() {
-    // １文字単位の制限しかできなかったのでここでバリデート
-    // マイナスが先頭以外にあったらエラー(数字に後ろにあったら)
-    return !new RegExp(r'[0-9]-').hasMatch(controller.text);
-  }
-
-  bool clearScore() {
-    score = 0;
-    controller.text = '';
-  }
-}
-
 const maxGame = 30;
 const defaultGameCount = 1;
 const defaultJoinedCount = 4;
@@ -445,13 +259,34 @@ class ScoreViewModel extends ChangeNotifier {
       return;
     }
 
-    // cellに保存する
-    final inputScore = rowProperty.getScoreText(col) == ''
-        ? null
-        : scoreCastInt(rowProperty.getScoreText(col));
-    final sm =
-        ScoreModel(drId: drId, gameCount: row, number: col, score: inputScore);
-    ref.read(scoreAccessor).upsert(sm);
+    // 順位を設定
+    rowProperty.setRank();
+
+    final accessor = ref.read(scoreAccessor);
+    for (var i = 0; i < rowProperty.scoreCellList.length; i++) {
+      final sc = rowProperty.scoreCellList[i];
+      // inputされていないcellもrank更新されているかもしれないので更新
+      // idがないは明らかに不要なのでスルー
+      if (i != col) {
+        if (sc.scoreModel.id != null) {
+          accessor.upsert(sc.scoreModel);
+        }
+        continue;
+      }
+
+      // inputされたcell
+      final inputScore = sc.controller.text == ''
+          ? null
+          : scoreCastInt(rowProperty.getScoreText(col));
+      final newSm = ScoreModel(
+          id: sc.scoreModel.id,
+          drId: sc.scoreModel.drId,
+          gameCount: sc.scoreModel.gameCount,
+          number: sc.scoreModel.number,
+          score: inputScore,
+          rank: sc.scoreModel.rank);
+      accessor.upsert(newSm);
+    }
   }
 
   bool validateRowScoreSum(int row) {
@@ -478,6 +313,219 @@ class ScoreViewModel extends ChangeNotifier {
     }
     keyBoardVisible = src;
     notifyListeners();
+  }
+}
+
+class Coordinate {
+  Coordinate(this.row, this.col);
+  int row;
+  int col;
+
+  bool isNotEqual(int row, int col) {
+    return this.row != row || this.col != col;
+  }
+}
+
+class SpeechBubbleProperty {
+  int score = 0;
+  Coordinate coordinate = Coordinate(0, 0);
+  bool isVisible = false;
+  void clear() {
+    isVisible = false;
+    score = 0;
+  }
+
+  void setProperty(int score, int row, int col) {
+    this.score = score;
+    coordinate = Coordinate(row, col);
+    isVisible = true;
+  }
+}
+
+// スコアの1行分のproperty
+class ScoreRowProperty {
+  ScoreRowProperty(int joinedCounter) {
+    addNewScore(joinedCounter);
+  }
+
+  Color color;
+  List<ScoreCellProperty> scoreCellList = [];
+
+  void addNewScore(int num) {
+    for (var i = 0; i < num; i++) {
+      scoreCellList.add(ScoreCellProperty());
+    }
+  }
+
+  void removeLastScore(int num) {
+    for (var i = 0; i < num; i++) {
+      scoreCellList.removeLast();
+    }
+  }
+
+  bool isFull() {
+    for (final s in scoreCellList) {
+      if (s.controller.text == '') {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  //　順位を設定
+  void setRank() {
+    // スコアでソート済みのリストを作る
+    // 現在の入力値を参照するためcontrolloerで比較
+    final sortList = List.of(scoreCellList)
+      ..sort((a, b) => scoreCastInt(b.controller.text)
+          .compareTo(scoreCastInt(a.controller.text)));
+
+    // ソート済みリストから保持するlistのランクを更新
+    var rank = 1;
+    for (final s in sortList) {
+      // 未入力のセルにはスコアなし
+      if (scoreCellList[s.scoreModel.number].controller.text == '') {
+        scoreCellList[s.scoreModel.number].scoreModel.rank = null;
+        continue;
+      }
+
+      scoreCellList[s.scoreModel.number].scoreModel.rank = rank;
+      rank++;
+    }
+  }
+
+  ScoreModel getScoreModel(int col) {
+    return scoreCellList[col].scoreModel;
+  }
+
+  String getScoreText(int col) {
+    return scoreCellList[col].controller.text;
+  }
+
+  int getScore(int col) {
+    return scoreCellList[col].scoreModel.score;
+  }
+
+  void setScore(int col, int score) {
+    scoreCellList[col].controller.text = score.toString();
+    scoreCellList[col].scoreModel.score = score;
+  }
+
+  void setScoreModel(int col, ScoreModel score) {
+    scoreCellList[col].controller.text = score.scoreString;
+    scoreCellList[col].scoreModel = score;
+  }
+
+  void setAllCursorToEnd() {
+    for (final c in scoreCellList) {
+      c.setCursorToEnd();
+    }
+  }
+
+  int getFocusCol() {
+    for (var i = 0; i < scoreCellList.length; i++) {
+      if (scoreCellList[i].focusNode.hasFocus) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  bool validateInputScore(int col) {
+    return scoreCellList[col].validateInput();
+  }
+
+  void clearScore(int col) {
+    scoreCellList[col].clearScore();
+  }
+
+  bool isNotNeedSpeechBubble(int notIncludeCol, int kindValue) {
+    // ゲーム人数-1　入力されていれば補完できる
+    // タップされたセルはカウントしない
+    var cnt = 0;
+    for (var i = 0; i < scoreCellList.length; i++) {
+      if (i == notIncludeCol) {
+        continue;
+      }
+      if (scoreCellList[i].controller.text != '') {
+        cnt++;
+        if (cnt >= kindValue - 1) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  int sumScore() {
+    var ret = 0;
+    for (final s in scoreCellList) {
+      ret += s.scoreModel.score;
+    }
+    return ret;
+  }
+
+  bool validateScoreSum(int kind) {
+    var total = 0;
+    var cnt = 0;
+    for (final c in scoreCellList) {
+      total += c.scoreModel.score;
+      if (c.controller.text != '') {
+        cnt++;
+      }
+    }
+
+    if (total != 0) {
+      return false;
+    }
+
+    return true;
+  }
+
+  void setRowColor(Color color) {
+    this.color = color;
+  }
+}
+
+// スコア1セル分のproperty
+class ScoreCellProperty {
+  ScoreCellProperty() {
+    controller.addListener(() {});
+  }
+  ScoreModel scoreModel = ScoreModel();
+
+  TextEditingController controller = TextEditingController();
+  FocusNode focusNode = FocusNode();
+
+  VoidCallback focusOut;
+
+  void setFocusOut(VoidCallback f) {
+    controller.removeListener(focusOut);
+    focusOut = f;
+    controller.addListener(focusOut);
+  }
+
+  void setCursorToEnd() {
+    controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: controller.text.length));
+  }
+
+  bool isChanged() {
+    if (focusNode.hasFocus) {
+      return false;
+    }
+    return scoreModel.score != scoreCastInt(controller.text);
+  }
+
+  bool validateInput() {
+    // １文字単位の制限しかできなかったのでここでバリデート
+    // マイナスが先頭以外にあったらエラー(数字に後ろにあったら)
+    return !new RegExp(r'[0-9]-').hasMatch(controller.text);
+  }
+
+  bool clearScore() {
+    scoreModel.score = 0;
+    controller.text = '';
   }
 }
 

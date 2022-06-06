@@ -75,6 +75,7 @@ create table if not exists $tableMember (
   $columnGameCount integer,
   $columnNumber integer,
   $columnScore integer,
+  $columnRank integer,
   foreign key ($columnDayRecodeId) references $tableDayRecode(_id) on delete cascade,
   unique ($columnDayRecodeId, $columnGameCount, $columnNumber)
   );
