@@ -91,6 +91,8 @@ class PlaceFeeCard extends StatelessWidget {
           child: TextField(
             controller: controller,
             textAlign: TextAlign.right,
+            keyboardType: const TextInputType.numberWithOptions(
+                signed: true, decimal: true),
             inputFormatters: <TextInputFormatter>[
               FilteringTextInputFormatter.digitsOnly,
               FilteringTextInputFormatter.singleLineFormatter,

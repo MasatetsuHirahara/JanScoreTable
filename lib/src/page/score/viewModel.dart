@@ -2,6 +2,7 @@ import 'dart:core';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_app/src/accessor/table/gameJoinMemberProvider.dart';
 import 'package:flutter_app/src/accessor/table/gameSettingProvider.dart';
 import 'package:flutter_app/src/accessor/table/scoreProvider.dart';
@@ -23,15 +24,15 @@ class Coordinate {
 }
 
 class SpeechBubbleProperty {
-  String score = '';
+  int score = 0;
   Coordinate coordinate = Coordinate(0, 0);
   bool isVisible = false;
   void clear() {
     isVisible = false;
-    score = '';
+    score = 0;
   }
 
-  void setProperty(String score, int row, int col) {
+  void setProperty(int score, int row, int col) {
     this.score = score;
     coordinate = Coordinate(row, col);
     isVisible = true;
@@ -76,9 +77,9 @@ class ScoreRowProperty {
     return scoreCellList[col].score;
   }
 
-  void setScore(int col, String score) {
-    scoreCellList[col].controller.text = score;
-    scoreCellList[col].score = scoreCastInt(score);
+  void setScore(int col, int score) {
+    scoreCellList[col].controller.text = score.toString();
+    scoreCellList[col].score = score;
   }
 
   void setScoreModel(int col, ScoreModel score) {
@@ -223,13 +224,6 @@ class ScoreViewModel extends ChangeNotifier {
     ..kind = KindValue.YONMA.num;
   bool keyBoardVisible = false;
 
-  @override
-  void dispose() {
-    print('desipose !!!');
-    // TODO: implement dispose
-    super.dispose();
-  }
-
   void listenGameSetting() {
     final gsa = ref.read(gameSettingAccessor);
     if (gsa.isInitialized) {
@@ -364,7 +358,7 @@ class ScoreViewModel extends ChangeNotifier {
     if (diff > 0) {
       addNewTotalPoint(diff);
     } else {
-      lastRemoveTotalPont(diff.abs());
+      lastRemoveTotalPoint(diff.abs());
     }
 
     // scoreは増減させる
@@ -388,7 +382,7 @@ class ScoreViewModel extends ChangeNotifier {
     }
   }
 
-  void lastRemoveTotalPont(int num) {
+  void lastRemoveTotalPoint(int num) {
     for (var i = 0; i < num; i++) {
       totalPointList.removeAt(totalPointList.length - 1);
     }
@@ -422,7 +416,7 @@ class ScoreViewModel extends ChangeNotifier {
     final currentTotal = rowProperty.sumScore() - rowProperty.getScore(col);
     final suggestPoint = -currentTotal;
 
-    speechBubbleProperty.setProperty(suggestPoint.toString(), row, col);
+    speechBubbleProperty.setProperty(suggestPoint, row, col);
     notifyListeners();
   }
 
@@ -443,8 +437,6 @@ class ScoreViewModel extends ChangeNotifier {
 
   void afterInput(int row, int col) {
     print('afterInput $row , $col');
-    // 吹き出しクリア
-    //clearSpeechBubbleIfNeed();
 
     // バリデートエラーならクリアして終わり
     final rowProperty = rowPropertyList[row];
@@ -459,8 +451,7 @@ class ScoreViewModel extends ChangeNotifier {
         : scoreCastInt(rowProperty.getScoreText(col));
     final sm =
         ScoreModel(drId: drId, gameCount: row, number: col, score: inputScore);
-    final accessor = ref.read(scoreAccessor);
-    accessor.upsert(sm);
+    ref.read(scoreAccessor).upsert(sm);
   }
 
   bool validateRowScoreSum(int row) {

@@ -132,6 +132,8 @@ Widget rateRow(GameSettingViewModel vm) {
                 textInputAction: TextInputAction.next,
                 controller: vm.rateController,
                 textAlign: TextAlign.center,
+                keyboardType: const TextInputType.numberWithOptions(
+                    signed: true, decimal: true),
                 inputFormatters: <TextInputFormatter>[
                   FilteringTextInputFormatter.digitsOnly,
                   FilteringTextInputFormatter.singleLineFormatter,
@@ -163,6 +165,8 @@ Widget chipRateRow(GameSettingViewModel vm) {
                   textInputAction: TextInputAction.next,
                   controller: vm.chipRateController,
                   textAlign: TextAlign.center,
+                  keyboardType: const TextInputType.numberWithOptions(
+                      signed: true, decimal: true),
                   inputFormatters: <TextInputFormatter>[
                     FilteringTextInputFormatter.digitsOnly,
                     FilteringTextInputFormatter.singleLineFormatter,

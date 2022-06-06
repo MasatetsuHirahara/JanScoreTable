@@ -117,6 +117,8 @@ Widget chipRowWidget(int index, ChipScoreViewModel viewModel) {
                   controller: rowProperty.controller,
                   focusNode: rowProperty.focusNode,
                   textAlign: TextAlign.center,
+                  keyboardType: const TextInputType.numberWithOptions(
+                      signed: true, decimal: true),
                   inputFormatters: <TextInputFormatter>[
                     FilteringTextInputFormatter.allow(RegExp(r'[-0-9]')),
                     FilteringTextInputFormatter.singleLineFormatter,

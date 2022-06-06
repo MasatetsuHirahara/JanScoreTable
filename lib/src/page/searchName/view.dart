@@ -4,9 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_app/src/page/searchName/viewModel.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// TODO
-//　検索
-
 final _viewModel = ChangeNotifierProvider.autoDispose((ref) {
   return SearchNameViewModel(ref);
 });
