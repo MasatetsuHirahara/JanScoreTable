@@ -6,6 +6,36 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../accessor/table/gameJoinMemberProvider.dart';
 import '../../accessor/table/scoreProvider.dart';
 
+class ResultProperty {
+  ResultProperty();
+  int firstCnt = 0;
+  int secondCnt = 0;
+  int thirdCnt = 0;
+  int fourthCnt = 0;
+  int joinCnt = 0;
+
+  void cntUp(int rank) {
+    joinCnt++;
+
+    switch (rank) {
+      case 0:
+        firstCnt++;
+        break;
+      case 1:
+        secondCnt++;
+        break;
+      case 2:
+        thirdCnt++;
+        break;
+      case 3:
+        fourthCnt++;
+        break;
+      default:
+        break;
+    }
+  }
+}
+
 class ScoreChartViewModel extends ChangeNotifier {
   ScoreChartViewModel(this.ref, this.drId) {
     listenGameJoinedMember();
@@ -18,6 +48,7 @@ class ScoreChartViewModel extends ChangeNotifier {
   double minY = 0;
 
   List<LineChartBarData> chartBarDataList = [];
+  List<ResultProperty> resultList = [];
   List<String> nameList = [];
 
   void listenGameJoinedMember() {
@@ -70,6 +101,7 @@ class ScoreChartViewModel extends ChangeNotifier {
         maxX = drIdScoreView.maxGameCount + 1.0;
 
         initChartBarDataList(drIdScoreView.maxNumber + 1);
+        initResultList(drIdScoreView.maxNumber + 1);
         for (var i = 0; i <= drIdScoreView.maxGameCount; i++) {
           for (var j = 0; j <= drIdScoreView.maxNumber; j++) {
             // yPointは累積になるようにする
@@ -87,6 +119,8 @@ class ScoreChartViewModel extends ChangeNotifier {
 
             final flSpot = FlSpot((i + 1).toDouble(), yPoint);
             chartBarDataList[j].spots.add(flSpot);
+
+            resultList[j].cntUp(drIdScoreView.map[i][j].rank);
           }
         }
       }
@@ -112,6 +146,13 @@ class ScoreChartViewModel extends ChangeNotifier {
           spots: [const FlSpot(0, 0)],
           colors: [numberColorExtension.fromInt(i).color]);
       chartBarDataList.add(data);
+    }
+  }
+
+  void initResultList(int num) {
+    resultList = [];
+    for (var i = 0; i < num; i++) {
+      resultList.add(ResultProperty());
     }
   }
 }

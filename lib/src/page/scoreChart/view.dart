@@ -78,60 +78,91 @@ class ScoreChartPage extends ConsumerWidget {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(8),
           child: Container(
             decoration: BoxDecoration(
               border: Border.all(color: Colors.black),
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Column(
-              children: [
-                provider.chartBarDataList.isNotEmpty
-                    ? chart(provider)
-                    : Expanded(
-                        child: Container(
-                        child: const Align(
-                          alignment: Alignment.center,
-                          child: HeadingText('表示するデータがありません'),
-                        ),
-                      )),
-                SizedBox(
-                  height: 50.h,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(0.0, 0, 0, 0.0),
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: provider.nameList.length,
-                      itemBuilder: (context, index) {
-                        return SizedBox(
-                          width:
-                              (screenSize.width - 8) / provider.nameList.length,
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: Text(
-                              '${provider.nameList[index]}',
-                              style: TextStyle(
-                                color:
-                                    numberColorExtension.fromInt(index).color,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+            child: Column(children: [
+              provider.chartBarDataList.isNotEmpty
+                  ? chart(provider)
+                  : Expanded(
+                      child: Container(
+                      child: const Align(
+                        alignment: Alignment.center,
+                        child: HeadingText('表示するデータがありません'),
+                      ),
+                    )),
+              SizedBox(
+                height: 50.h,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      for (var i = 0; i < provider.nameList.length; i++)
+                        nameButton(context, i, provider.nameList[i], provider.resultList[i]),
+                    ],
                   ),
                 ),
-                SizedBox(
-                  height: 8.h,
-                )
-              ],
-            ),
+              ),
+            ]),
           ),
         ),
       ),
     );
   }
+}
+
+Widget nameButton(
+    BuildContext context, int index, String name, ResultProperty result) {
+  return ElevatedButton(
+    style: ElevatedButton.styleFrom(
+      primary: numberColorExtension.fromInt(index).color,
+    ),
+    child: ButtonText(
+      name,
+    ),
+    onPressed: () async {
+      await showModalBottomSheet<int>(
+        context: context,
+        builder: (BuildContext context) {
+          return rankSheet(result);
+        },
+      );
+    },
+  );
+}
+
+Widget rankSheet(ResultProperty result) {
+  return SafeArea(
+    child: Padding(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Row(
+            children: [
+              Expanded(
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Text('1着'),
+                ),
+              ),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Text('${result.joinCnt}'),
+                ),
+              ),
+            ],
+          )
+        ],
+      ),
+    ),
+  );
 }
 
 Widget chart(ScoreChartViewModel vm) {
@@ -140,6 +171,7 @@ Widget chart(ScoreChartViewModel vm) {
       padding: const EdgeInsets.all(16),
       child: LineChart(
         LineChartData(
+          lineTouchData: LineTouchData(enabled: false),
           baselineY: 0,
           minX: 0, //x軸最小値
           maxX: vm.maxX, //x軸最大値
@@ -163,6 +195,7 @@ Widget chart(ScoreChartViewModel vm) {
             ),
             leftTitles: SideTitles(
               showTitles: true,
+              reservedSize: 30.w,
               // 整数値だけラベルに表示
               getTitles: (double value) {
                 if (value - value.floor() != 0) {
@@ -176,6 +209,7 @@ Widget chart(ScoreChartViewModel vm) {
             ),
             rightTitles: SideTitles(
               showTitles: true,
+              reservedSize: 30.w,
               // 整数値だけラベルに表示
               getTitles: (double value) {
                 if (value - value.floor() != 0) {
@@ -188,6 +222,11 @@ Widget chart(ScoreChartViewModel vm) {
               },
             ),
           ),
+          gridData: FlGridData(
+              // 縦線は整数だけ表示
+              checkToShowVerticalLine: (value) {
+            return (value - value.floor()) == 0;
+          }),
         ),
       ),
     ),
