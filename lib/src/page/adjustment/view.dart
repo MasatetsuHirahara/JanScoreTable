@@ -58,7 +58,7 @@ class AdjustmentPage extends ConsumerWidget {
                     height: 16,
                   ),
                   PlaceFeeCard(provider.placeFeeController, (String value) {
-                    provider.setPointPropertyList();
+                    provider.afterPlaceFeeInput();
                   }),
                 ],
               ),

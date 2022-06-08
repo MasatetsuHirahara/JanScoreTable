@@ -81,17 +81,6 @@ class AdjustmentViewModel extends ChangeNotifier {
         TextPosition(offset: placeFeeController.text.length),
       );
 
-    // 一人あたりの場代を計算。１の位は余りとしてトップに分配
-    var placeFeePerOne = 0;
-    var reminder = 0;
-    final placeFee = gameSetting.placeFee;
-    if (placeFee != 0) {
-      placeFeePerOne = (placeFee ~/ pointList.length);
-      final onesPlace = int.parse(placeFeePerOne.toString().substring(0, 1));
-      placeFeePerOne -= onesPlace;
-      reminder = (placeFee % pointList.length) + onesPlace * pointList.length;
-    }
-
     // 表示するポイントを計算する
     // chipScoreListはgjm分のindexを持っているのでchipScoreをベースにする
     pointList = [];
@@ -109,7 +98,23 @@ class AdjustmentViewModel extends ChangeNotifier {
         }
         point += totalList[cs.number] * gameSetting.rate;
       }
-      pointList.add(PointProperty(name, point, chipPoint, placeFeePerOne));
+      pointList.add(PointProperty(name, point, chipPoint));
+    }
+
+    // 一人あたりの場代を計算。１の位は余りとしてトップに分配
+    var placeFeePerOne = 0;
+    var reminder = 0;
+    final placeFee = gameSetting.placeFee;
+    if (pointList.length != 0) {
+      placeFeePerOne = placeFee ~/ pointList.length;
+      final perOneStr = placeFeePerOne.toString();
+      final onesPlace = int.parse(perOneStr.substring(perOneStr.length - 1));
+      placeFeePerOne -= onesPlace;
+      reminder = (placeFee % pointList.length) + onesPlace * pointList.length;
+    }
+
+    for (final p in pointList) {
+      p.addPlaceFee(placeFeePerOne);
     }
 
     // topにあまりを追加
@@ -129,12 +134,12 @@ class AdjustmentViewModel extends ChangeNotifier {
 }
 
 class PointProperty {
-  PointProperty(this.name, this.point, this.chipPoint, this.placeFee) {}
+  PointProperty(this.name, this.point, this.chipPoint) {}
 
-  String name;
-  int point;
-  int chipPoint;
-  int placeFee;
+  String name = '';
+  int point = 0;
+  int chipPoint = 0;
+  int placeFee = 0;
 
   int get totalPoint {
     return point + chipPoint - placeFee;
