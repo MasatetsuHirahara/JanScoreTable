@@ -1,62 +1,62 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/src/page/gameList/viewModel.dart';
-import 'package:flutter_app/src/page/gameSetting/view.dart';
 import 'package:flutter_app/src/page/score/view.dart';
 import 'package:flutter_app/src/widget/text.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../widget/dialog.dart';
+import '../base/baseBottomNavigationItemPage.dart';
 
 final _viewModel = ChangeNotifierProvider.autoDispose((ref) {
   return GameListViewModel(ref);
 });
 
-class GameListPage extends ConsumerWidget {
+class GameListPage extends BaseBottomNavigationItemPage {
+  GameListPage() {
+    title = '点数表一覧';
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final vm = ref.watch(_viewModel);
 
     final cardPropertyList = vm.getProperty();
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('ゲーム一覧'),
+    return SafeArea(
+      child: Center(
+        child: ListView.builder(
+            itemCount: cardPropertyList.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+                child: DayRecodeCard(
+                    property: cardPropertyList[index],
+                    onTap: () {
+                      Navigator.of(context).push<dynamic>(
+                          ScorePage.route(drId: cardPropertyList[index].dr.id));
+                    },
+                    onLongTap: () async {
+                      final result = await showDialog<bool>(
+                          context: context,
+                          builder: (context) {
+                            return const DeleteDialog('削除してよろしいですか？');
+                          });
+                      if (result) {
+                        vm.deleteDayRecode(index);
+                      }
+                    }),
+              );
+            }),
       ),
-      body: SafeArea(
-        child: Center(
-          child: ListView.builder(
-              itemCount: cardPropertyList.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-                  child: DayRecodeCard(
-                      property: cardPropertyList[index],
-                      onTap: () {
-                        Navigator.of(context).push<dynamic>(ScorePage.route(
-                            drId: cardPropertyList[index].dr.id));
-                      },
-                      onLongTap: () async {
-                        final result = await showDialog<bool>(
-                            context: context,
-                            builder: (context) {
-                              return const DeleteDialog('削除してよろしいですか？');
-                            });
-                        if (result) {
-                          vm.deleteDayRecode(index);
-                        }
-                      }),
-                );
-              }),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // まだdrはないので0を渡す
-          Navigator.of(context).push<dynamic>(GameSettingPage.route(drId: 0));
-        },
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+    //   floatingActionButton: FloatingActionButton(
+    //     onPressed: () {
+    //       // まだdrはないので0を渡す
+    //       Navigator.of(context).push<dynamic>(GameSettingPage.route(drId: 0));
+    //     },
+    //     tooltip: 'Increment',
+    //     child: const Icon(Icons.add),
+    //   ), // This trailing comma makes auto-formatting nicer for build methods.
+    // );
   }
 }
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_app/src/page/gameList/view.dart';
+import 'package:flutter_app/src/page/home/view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
           home: child,
         );
       },
-      child: GameListPage(),
+      child: HomePage(),
     );
   }
 }
