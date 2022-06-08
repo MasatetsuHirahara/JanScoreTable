@@ -63,7 +63,10 @@ class GameSettingPage extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      gameKindRow(vm),
+                      Visibility(
+                        visible: drId == 0, // 途中変更は不可とする
+                        child: gameKindRow(vm),
+                      ),
                       rateRow(vm),
                       chipRateRow(vm),
                       for (var i = 0; i < vm.mpList.length; i++)
