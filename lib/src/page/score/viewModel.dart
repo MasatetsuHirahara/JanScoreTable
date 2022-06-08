@@ -118,8 +118,8 @@ class ScoreViewModel extends ChangeNotifier {
         return;
       }
     }
-    // 末尾のスコアを確認して、空欄があれば追加しない
-    if (rowPropertyList.last.isFull() == false) {
+    // 末尾のスコアを確認して、必要数入力されていなければ追加しない
+    if (rowPropertyList.last.isInputComplete(gameSettingModel.kind) == false) {
       return;
     }
 
@@ -363,13 +363,17 @@ class ScoreRowProperty {
     }
   }
 
-  bool isFull() {
+  bool isInputComplete(int completeNum) {
+    var inputCnt = 0;
     for (final s in scoreCellList) {
-      if (s.controller.text == '') {
-        return false;
+      if (s.controller.text != '') {
+        inputCnt++;
+        if (inputCnt >= completeNum) {
+          return true;
+        }
       }
     }
-    return true;
+    return false;
   }
 
   //　順位を設定
