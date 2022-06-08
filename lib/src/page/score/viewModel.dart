@@ -270,6 +270,8 @@ class ScoreViewModel extends ChangeNotifier {
       if (i != col) {
         if (sc.scoreModel.id != null) {
           accessor.upsert(sc.scoreModel);
+        } else {
+          print('aaa');
         }
         continue;
       }
@@ -280,9 +282,9 @@ class ScoreViewModel extends ChangeNotifier {
           : scoreCastInt(rowProperty.getScoreText(col));
       final newSm = ScoreModel(
           id: sc.scoreModel.id,
-          drId: sc.scoreModel.drId,
-          gameCount: sc.scoreModel.gameCount,
-          number: sc.scoreModel.number,
+          drId: drId,
+          gameCount: row,
+          number: col,
           score: inputScore,
           rank: sc.scoreModel.rank);
       accessor.upsert(newSm);
@@ -384,6 +386,9 @@ class ScoreRowProperty {
     var rank = 1;
     for (final s in sortList) {
       // 未入力のセルにはスコアなし
+      if (s.scoreModel.number == null) {
+        continue;
+      }
       if (scoreCellList[s.scoreModel.number].controller.text == '') {
         scoreCellList[s.scoreModel.number].scoreModel.rank = null;
         continue;
