@@ -121,10 +121,15 @@ class PointCard extends StatelessWidget {
         borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
       child: ExpansionTile(
-        title: HeadingText(property.name),
-        trailing: ScoreText(
-          property.totalPoint,
-          trailing: 'G',
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            HeadingText(property.name),
+            ScoreText(
+              property.totalPoint,
+              trailing: 'G',
+            )
+          ],
         ),
         children: [
           Padding(

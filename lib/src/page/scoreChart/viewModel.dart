@@ -4,7 +4,9 @@ import 'package:flutter_app/src/page/scoreChart/view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../accessor/table/gameJoinMemberProvider.dart';
+import '../../accessor/table/gameSettingProvider.dart';
 import '../../accessor/table/scoreProvider.dart';
+import '../../model/gameSettingModel.dart';
 
 class ResultProperty {
   ResultProperty();
@@ -14,20 +16,68 @@ class ResultProperty {
   int fourthCnt = 0;
   int joinCnt = 0;
 
+  double averageRation() {
+    if (joinCnt == 0) {
+      return 0;
+    }
+
+    var total = firstCnt * 1;
+    total += secondCnt * 2;
+    total += thirdCnt * 3;
+    total += firstCnt * 4;
+
+    return total / joinCnt;
+  }
+
+  double rentaiRation() {
+    if (joinCnt == 0) {
+      return 0;
+    }
+    return (firstCnt + secondCnt) / joinCnt;
+  }
+
+  double firstRation() {
+    if (joinCnt == 0) {
+      return 0;
+    }
+    return firstCnt / joinCnt;
+  }
+
+  double secondRation() {
+    if (joinCnt == 0) {
+      return 0;
+    }
+    return secondCnt / joinCnt;
+  }
+
+  double thirdRation() {
+    if (joinCnt == 0) {
+      return 0;
+    }
+    return thirdCnt / joinCnt;
+  }
+
+  double fourthRation() {
+    if (joinCnt == 0) {
+      return 0;
+    }
+    return fourthCnt / joinCnt;
+  }
+
   void cntUp(int rank) {
     joinCnt++;
 
     switch (rank) {
-      case 0:
+      case 1:
         firstCnt++;
         break;
-      case 1:
+      case 2:
         secondCnt++;
         break;
-      case 2:
+      case 3:
         thirdCnt++;
         break;
-      case 3:
+      case 4:
         fourthCnt++;
         break;
       default:
@@ -38,6 +88,7 @@ class ResultProperty {
 
 class ScoreChartViewModel extends ChangeNotifier {
   ScoreChartViewModel(this.ref, this.drId) {
+    listenGameSetting();
     listenGameJoinedMember();
     listenScore();
   }
@@ -50,6 +101,7 @@ class ScoreChartViewModel extends ChangeNotifier {
   List<LineChartBarData> chartBarDataList = [];
   List<ResultProperty> resultList = [];
   List<String> nameList = [];
+  bool isVisibleFourth = true;
 
   void listenGameJoinedMember() {
     localFunc(GameJoinMemberAccessor p) {
@@ -105,13 +157,23 @@ class ScoreChartViewModel extends ChangeNotifier {
         for (var i = 0; i <= drIdScoreView.maxGameCount; i++) {
           for (var j = 0; j <= drIdScoreView.maxNumber; j++) {
             // yPointは累積になるようにする
+            // スコアがなければ前回のポイントから変動なし
             if (drIdScoreView.map[i].containsKey(j) == false) {
+              final flSpot =
+                  FlSpot((i + 1).toDouble(), chartBarDataList[j].spots[i].y);
+              chartBarDataList[j].spots.add(flSpot);
               continue;
             }
             if (drIdScoreView.map[i][j].scoreString == '') {
+              final flSpot =
+                  FlSpot((i + 1).toDouble(), chartBarDataList[j].spots[i].y);
+              chartBarDataList[j].spots.add(flSpot);
               continue;
             }
             var yPoint = drIdScoreView.map[i][j].score.toDouble();
+            if (chartBarDataList[j].spots.length <= i) {
+              print('aa');
+            }
             yPoint += chartBarDataList[j].spots[i].y;
 
             // MinMaxの更新
@@ -154,6 +216,26 @@ class ScoreChartViewModel extends ChangeNotifier {
     for (var i = 0; i < num; i++) {
       resultList.add(ResultProperty());
     }
+  }
+
+  void listenGameSetting() {
+    localFunc(GameSettingAccessor p) {
+      if (p.drIdMap.containsKey(drId)) {
+        final gs = p.drIdMap[drId];
+        isVisibleFourth = gs.kind == KindValue.YONMA.num;
+      }
+      notifyListeners();
+    }
+
+    final accessor = ref.read(gameSettingAccessor);
+    if (accessor.isInitialized) {
+      localFunc(accessor);
+    }
+    ref.listen<GameSettingAccessor>(gameSettingAccessor, (previous, next) {
+      if (next.isInitialized) {
+        localFunc(next);
+      }
+    });
   }
 }
 

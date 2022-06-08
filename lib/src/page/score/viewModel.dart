@@ -270,8 +270,6 @@ class ScoreViewModel extends ChangeNotifier {
       if (i != col) {
         if (sc.scoreModel.id != null) {
           accessor.upsert(sc.scoreModel);
-        } else {
-          print('aaa');
         }
         continue;
       }

@@ -40,14 +40,15 @@ class AdjustmentViewModel extends ChangeNotifier {
         totalList = [];
         for (var i = 0; i <= drIdScoreView.maxGameCount; i++) {
           for (var j = 0; j <= drIdScoreView.maxNumber; j++) {
-            if (drIdScoreView.map[i].containsKey(j) == false) {
-              continue;
-            }
+            // マップからスコアを取得。ない場合0と扱って加算する
+            final score = drIdScoreView.map[i].containsKey(j)
+                ? drIdScoreView.map[i][j].score
+                : 0;
             if (i == 0) {
-              totalList.add(drIdScoreView.map[i][j].score);
+              totalList.add(score);
               continue;
             }
-            totalList[j] += drIdScoreView.map[i][j].score;
+            totalList[j] += score;
           }
         }
         setPointPropertyList();

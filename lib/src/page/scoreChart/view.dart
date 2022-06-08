@@ -65,8 +65,7 @@ class ScoreChartPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // 引数処理
     drId = ModalRoute.of(context).settings.arguments as int;
-    final provider = ref.watch(_viewModel(drId));
-    final screenSize = MediaQuery.of(context).size;
+    final vm = ref.watch(_viewModel(drId));
 
     return Scaffold(
       appBar: AppBar(
@@ -86,8 +85,8 @@ class ScoreChartPage extends ConsumerWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Column(children: [
-              provider.chartBarDataList.isNotEmpty
-                  ? chart(provider)
+              vm.chartBarDataList.isNotEmpty
+                  ? chart(vm)
                   : Expanded(
                       child: Container(
                       child: const Align(
@@ -102,8 +101,8 @@ class ScoreChartPage extends ConsumerWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      for (var i = 0; i < provider.nameList.length; i++)
-                        nameButton(context, i, provider.nameList[i], provider.resultList[i]),
+                      for (var i = 0; i < vm.nameList.length; i++)
+                        nameButton(context, i, vm),
                     ],
                   ),
                 ),
@@ -116,52 +115,77 @@ class ScoreChartPage extends ConsumerWidget {
   }
 }
 
-Widget nameButton(
-    BuildContext context, int index, String name, ResultProperty result) {
+Widget nameButton(BuildContext context, int index, ScoreChartViewModel vm) {
   return ElevatedButton(
     style: ElevatedButton.styleFrom(
       primary: numberColorExtension.fromInt(index).color,
     ),
     child: ButtonText(
-      name,
+      vm.nameList[index],
     ),
     onPressed: () async {
       await showModalBottomSheet<int>(
         context: context,
         builder: (BuildContext context) {
-          return rankSheet(result);
+          return InkWell(
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+              child: rankSheet(index, vm));
         },
       );
     },
   );
 }
 
-Widget rankSheet(ResultProperty result) {
+const rationDigit = 2;
+Widget rankSheet(int index, ScoreChartViewModel vm) {
+  final name = vm.nameList[index];
+  final result = vm.resultList[index];
   return SafeArea(
     child: Padding(
       padding: const EdgeInsets.all(8),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Row(
-            children: [
-              Expanded(
-                child: Align(
-                  alignment: Alignment.center,
-                  child: Text('1着'),
-                ),
-              ),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.center,
-                  child: Text('${result.joinCnt}'),
-                ),
-              ),
-            ],
-          )
+          rankRow(name, ''),
+          Divider(),
+          rankRow('平均順位', result.averageRation().toStringAsFixed(rationDigit)),
+          rankRow('連対率', result.rentaiRation().toStringAsFixed(rationDigit)),
+          rankRow('1着', rankFormat(result.firstCnt, result.firstRation())),
+          rankRow('2着', rankFormat(result.secondCnt, result.secondRation())),
+          rankRow('3着', rankFormat(result.thirdCnt, result.thirdRation())),
+          Visibility(
+              visible: vm.isVisibleFourth,
+              child: rankRow(
+                  '4着', rankFormat(result.fourthCnt, result.fourthRation()))),
         ],
       ),
     ),
+  );
+}
+
+String rankFormat(int cnt, double ration) {
+  final rationStr = ration.toStringAsFixed(rationDigit);
+  return '$cnt回 / $rationStr%';
+}
+
+Widget rankRow(String title, String value) {
+  return Row(
+    children: [
+      Expanded(
+        child: Align(
+          alignment: Alignment.center,
+          child: HeadingText(title),
+        ),
+      ),
+      Expanded(
+        child: Align(
+          alignment: Alignment.center,
+          child: NormalText(value),
+        ),
+      ),
+    ],
   );
 }
 
@@ -195,7 +219,7 @@ Widget chart(ScoreChartViewModel vm) {
             ),
             leftTitles: SideTitles(
               showTitles: true,
-              reservedSize: 30.w,
+              reservedSize: 35.w,
               // 整数値だけラベルに表示
               getTitles: (double value) {
                 if (value - value.floor() != 0) {
@@ -209,7 +233,7 @@ Widget chart(ScoreChartViewModel vm) {
             ),
             rightTitles: SideTitles(
               showTitles: true,
-              reservedSize: 30.w,
+              reservedSize: 35.w,
               // 整数値だけラベルに表示
               getTitles: (double value) {
                 if (value - value.floor() != 0) {
