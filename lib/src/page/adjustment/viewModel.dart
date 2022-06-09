@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../accessor/table/chipScoreProvider.dart';
-import '../../accessor/table/gameSettingProvider.dart';
-import '../../accessor/table/scoreProvider.dart';
+import '../../accessor/table/chipScoreAccessor.dart';
+import '../../accessor/table/gameSettingAccessor.dart';
+import '../../accessor/table/scoreAccessor.dart';
 import '../../model/gameSettingModel.dart';
 
 class AdjustmentViewModel extends ChangeNotifier {

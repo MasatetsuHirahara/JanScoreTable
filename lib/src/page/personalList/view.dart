@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/src/page/personalList/viewModel.dart';
+import 'package:flutter_app/src/page/personalScore/view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../base/baseBottomNavigationItemPage.dart';
@@ -34,11 +35,12 @@ class PersonalListPage extends BaseBottomNavigationItemPage {
                   shrinkWrap: true,
                   itemCount: vm.resultPropertyList.length,
                   itemBuilder: (context, index) {
+                    final result = vm.resultPropertyList[index];
                     return ResultCard(
-                      vm.resultPropertyList[index],
+                      result,
                       () {
-                        Navigator.of(context)
-                            .pop(vm.resultPropertyList[index].id);
+                        Navigator.of(context).push<dynamic>(
+                            PersonalScorePage.route(mId: result.id));
                       },
                     );
                   }),

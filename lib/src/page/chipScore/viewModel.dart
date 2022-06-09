@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app/src/accessor/table/chipScoreProvider.dart';
+import 'package:flutter_app/src/accessor/table/chipScoreAccessor.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ChipScoreViewModel extends ChangeNotifier {

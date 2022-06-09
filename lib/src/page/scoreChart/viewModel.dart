@@ -3,9 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_app/src/page/scoreChart/view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../accessor/table/gameJoinMemberProvider.dart';
-import '../../accessor/table/gameSettingProvider.dart';
-import '../../accessor/table/scoreProvider.dart';
+import '../../accessor/table/gameJoinMemberAccesor.dart';
+import '../../accessor/table/gameSettingAccessor.dart';
+import '../../accessor/table/scoreAccessor.dart';
 import '../../model/gameSettingModel.dart';
 
 class ResultProperty {
@@ -24,7 +24,7 @@ class ResultProperty {
     var total = firstCnt * 1;
     total += secondCnt * 2;
     total += thirdCnt * 3;
-    total += firstCnt * 4;
+    total += fourthCnt * 4;
 
     return total / joinCnt;
   }

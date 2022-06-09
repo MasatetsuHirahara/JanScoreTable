@@ -1,5 +1,5 @@
 import 'package:flutter_app/src/accessor/table/baseTableAccessor.dart';
-import 'package:flutter_app/src/accessor/table/gameJoinMemberProvider.dart';
+import 'package:flutter_app/src/accessor/table/gameJoinMemberAccesor.dart';
 import 'package:flutter_app/src/common/const.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

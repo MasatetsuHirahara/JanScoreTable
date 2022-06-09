@@ -2,12 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_app/src/model/dayRecodeModel.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../accessor/table/chipScoreProvider.dart';
+import '../../accessor/table/chipScoreAccessor.dart';
 import '../../accessor/table/dayRecodeAccessor.dart';
-import '../../accessor/table/gameJoinMemberProvider.dart';
-import '../../accessor/table/gameSettingProvider.dart';
+import '../../accessor/table/gameJoinMemberAccesor.dart';
+import '../../accessor/table/gameSettingAccessor.dart';
 import '../../accessor/table/memberAccessor.dart';
-import '../../accessor/table/scoreProvider.dart';
+import '../../accessor/table/scoreAccessor.dart';
 import '../../model/gameJoinMemberModel.dart';
 import '../../model/gameSettingModel.dart';
 import '../../model/memberModel.dart';

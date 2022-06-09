@@ -2,8 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../accessor/table/dayRecodeAccessor.dart';
-import '../../accessor/table/gameJoinMemberProvider.dart';
-import '../../accessor/table/gameSettingProvider.dart';
+import '../../accessor/table/gameJoinMemberAccesor.dart';
+import '../../accessor/table/gameSettingAccessor.dart';
 import '../../model/dayRecodeModel.dart';
 import '../../model/gameSettingModel.dart';
 
