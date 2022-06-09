@@ -1,60 +1,49 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_app/src/page/searchName/viewModel.dart';
+import 'package:flutter_app/src/page/personalList/viewModel.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../base/baseBottomNavigationItemPage.dart';
+
 final _viewModel = ChangeNotifierProvider.autoDispose((ref) {
-  return SearchNameViewModel(ref);
+  return PersonalListViewModel(ref);
 });
 
-class SearchNamePage extends ConsumerWidget {
-  static Route<dynamic> route() {
-    return MaterialPageRoute<dynamic>(
-        builder: (_) => SearchNamePage(),
-        settings: const RouteSettings(),
-        fullscreenDialog: true);
+class PersonalListPage extends BaseBottomNavigationItemPage {
+  PersonalListPage() {
+    title = '個人成績一覧';
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final vm = ref.watch(_viewModel);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('名前検索'),
-        leading: IconButton(
-          icon: const Icon(Icons.clear),
-          onPressed: () => Navigator.of(context).pop(0),
-        ),
-      ),
-      body: SafeArea(
-        child: Container(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              InputCard(vm.inputProperty, (value) {
-                vm.onChangeName();
-              }),
-              const SizedBox(
-                height: 8,
-              ),
-              Expanded(
-                child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: vm.resultPropertyList.length,
-                    itemBuilder: (context, index) {
-                      return ResultCard(
-                        vm.resultPropertyList[index],
-                        () {
-                          Navigator.of(context)
-                              .pop(vm.resultPropertyList[index].id);
-                        },
-                      );
-                    }),
-              ),
-            ],
-          ),
+    return SafeArea(
+      child: Container(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            InputCard(vm.inputProperty, (value) {
+              vm.onChangeName();
+            }),
+            const SizedBox(
+              height: 8,
+            ),
+            Expanded(
+              child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: vm.resultPropertyList.length,
+                  itemBuilder: (context, index) {
+                    return ResultCard(
+                      vm.resultPropertyList[index],
+                      () {
+                        Navigator.of(context)
+                            .pop(vm.resultPropertyList[index].id);
+                      },
+                    );
+                  }),
+            ),
+          ],
         ),
       ),
     );

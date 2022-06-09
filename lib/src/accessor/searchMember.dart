@@ -9,17 +9,19 @@ class SearchMemberAccessor extends ChangeNotifier {
   SearchMemberAccessor(this.ref);
   Ref ref;
 
-  Future<List<MemberModel>> get(String name, int limit) async {
+  Future<List<MemberModel>> get(String name, {int limit}) async {
     final dba = ref.read(dbAccessor);
     if (dba.isOpen == false) {
       return [];
     }
 
-    final sql = 'SELECT * FROM '
+    var sql = 'SELECT * FROM '
         '$tableMember '
         'WHERE $columnName LIKE \'$name%\' '
-        'ORDER BY $columnLastJoin DESC '
-        'LIMIT $limit';
+        'ORDER BY $columnLastJoin DESC ';
+    if (limit != null) {
+      sql += ' LIMIT $limit';
+    }
 
     final list = await dba.rawQuery(sql);
 

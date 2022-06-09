@@ -3,14 +3,12 @@ import 'package:flutter_app/src/accessor/searchMember.dart';
 import 'package:flutter_app/src/model/memberModel.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-const recentlyMemberNum = 8;
-
 final _searchMember = ChangeNotifierProvider.autoDispose((ref) {
   return SearchMemberAccessor(ref);
 });
 
-class SearchNameViewModel extends ChangeNotifier {
-  SearchNameViewModel(this.ref) {
+class PersonalListViewModel extends ChangeNotifier {
+  PersonalListViewModel(this.ref) {
     getMember();
   }
 
@@ -19,9 +17,8 @@ class SearchNameViewModel extends ChangeNotifier {
   List<ResultProperty> resultPropertyList = [];
 
   Future<void> getMember() async {
-    final memberList = await ref
-        .read(_searchMember)
-        .get(inputProperty.controller.text, limit: recentlyMemberNum);
+    final memberList =
+        await ref.read(_searchMember).get(inputProperty.controller.text);
 
     resultPropertyList = [];
     for (final m in memberList) {

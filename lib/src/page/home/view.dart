@@ -20,7 +20,7 @@ class HomePage extends ConsumerWidget {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
+            icon: Icon(Icons.list_alt),
             label: '点数表',
           ),
           BottomNavigationBarItem(
