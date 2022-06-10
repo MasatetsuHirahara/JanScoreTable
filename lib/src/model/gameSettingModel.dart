@@ -26,6 +26,30 @@ extension KindValueExtension on KindValue {
   String get gameName => gameNames[this];
 }
 
+enum InputTypeValue { POINT, SOTEN }
+
+extension InputTypeValueExtension on InputTypeValue {
+  static final numbers = {
+    InputTypeValue.POINT: 1,
+    InputTypeValue.SOTEN: 2,
+  };
+  int get num => numbers[this];
+  static InputTypeValue fromInt(int target) {
+    for (final v in InputTypeValue.values) {
+      if (target == v.num) {
+        return v;
+      }
+    }
+    return InputTypeValue.POINT;
+  }
+
+  static final gameNames = {
+    InputTypeValue.POINT: 'ポイント',
+    InputTypeValue.SOTEN: '素点',
+  };
+  String get gameName => gameNames[this];
+}
+
 class GameSettingModel extends BaseModel {
   GameSettingModel();
   GameSettingModel.fromMap(Map<dynamic, dynamic> map) {

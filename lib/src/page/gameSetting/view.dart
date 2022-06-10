@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/src/model/gameSettingModel.dart';
+import 'package:flutter_app/src/page/copySetting/view.dart';
 import 'package:flutter_app/src/page/gameSetting/viewModel.dart';
 import 'package:flutter_app/src/page/searchName/view.dart';
 import 'package:flutter_app/src/widget/text.dart';
@@ -47,6 +48,19 @@ class GameSettingPage extends ConsumerWidget {
             icon: const Icon(Icons.clear),
             onPressed: () => Navigator.of(context).pop(),
           ),
+          actions: [
+            Visibility(
+              visible: drId == 0,
+              child: IconButton(
+                onPressed: () async {
+                  final id = await Navigator.of(context)
+                      .push<dynamic>(CopySettingPage.route()) as int;
+                  vm.copySetting(id);
+                },
+                icon: const Icon(Icons.content_copy_outlined),
+              ),
+            ),
+          ],
         ),
         body: SafeArea(
           child: Padding(
@@ -72,6 +86,7 @@ class GameSettingPage extends ConsumerWidget {
                       for (var i = 0; i < vm.mpList.length; i++)
                         memberRow(context, vm, i),
                       addRemoveRow(context, vm),
+                      detailSetting(vm),
                       Align(
                         alignment: Alignment.center,
                         child: ElevatedButton(
@@ -90,6 +105,98 @@ class GameSettingPage extends ConsumerWidget {
           ),
         ));
   }
+}
+
+Widget detailSetting(GameSettingViewModel vm) {
+  return ExpansionTile(
+    title: const HeadingText('詳細設定'),
+    tilePadding: EdgeInsets.symmetric(horizontal: 8),
+    childrenPadding: EdgeInsets.fromLTRB(8, 0, 0, 0),
+    children: [
+      okaSection(vm),
+      umaSection(vm, true),
+      koRow(vm),
+      inputTypeRow(vm),
+    ],
+  );
+}
+
+Widget okaSection(GameSettingViewModel vm) {
+  final genten = RateProperty('原点', vm.gentenController, '配給原点', '');
+  final kaeshi = RateProperty('返し', vm.kaeshiController, '基準点', '');
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const HeadingText('オカ'),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 0, 0),
+        child: Column(
+          children: [
+            rateWidget(genten),
+            rateWidget(kaeshi),
+          ],
+        ),
+      ),
+    ],
+  );
+}
+
+Widget umaSection(GameSettingViewModel vm, bool isVisibleFourth) {
+  final first = RateProperty('1着', vm.firstUmaController, '順位点', '');
+  final second = RateProperty('2着', vm.secondUmaController, '順位点', '');
+  final third = RateProperty('3着', vm.thirdUmaController, '順位点', '');
+  final fourth = RateProperty('4着', vm.fourthUmaController, '順位点', '');
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const HeadingText('ウマ'),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 0, 0),
+        child: Column(
+          children: [
+            rateWidget(first),
+            rateWidget(second),
+            rateWidget(third),
+            Visibility(visible: isVisibleFourth, child: rateWidget(fourth)),
+          ],
+        ),
+      ),
+    ],
+  );
+}
+
+Widget koRow(GameSettingViewModel vm) {
+  final p = RateProperty('飛び', vm.rateController, 'ポイント', '');
+  return rateWidget(p);
+}
+
+Widget inputTypeRow(GameSettingViewModel vm) {
+  final groupValue = vm.inputType;
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      const HeadingText('入力方法'),
+      Container(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const NormalText('ポイント'),
+            Radio(
+              value: InputTypeValue.POINT,
+              groupValue: groupValue,
+              onChanged: vm.setInputType,
+            ),
+            const NormalText('素点'),
+            Radio(
+              value: InputTypeValue.SOTEN,
+              groupValue: groupValue,
+              onChanged: vm.setInputType,
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
 }
 
 Widget gameKindRow(GameSettingViewModel vm) {
@@ -122,68 +229,13 @@ Widget gameKindRow(GameSettingViewModel vm) {
 }
 
 Widget rateRow(GameSettingViewModel vm) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      const HeadingText('レート'),
-      Container(
-        child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          Container(
-              padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
-              width: 100,
-              child: TextField(
-                textInputAction: TextInputAction.next,
-                controller: vm.rateController,
-                textAlign: TextAlign.center,
-                keyboardType: const TextInputType.numberWithOptions(
-                    signed: true, decimal: true),
-                inputFormatters: <TextInputFormatter>[
-                  FilteringTextInputFormatter.digitsOnly,
-                  FilteringTextInputFormatter.singleLineFormatter,
-                ],
-                decoration: const InputDecoration(
-                  hintText: '千点あたり',
-                ),
-              )),
-          const NormalText('G'),
-        ]),
-      ),
-    ],
-  );
+  final p = RateProperty('レート', vm.rateController, '千点あたり', 'G');
+  return rateWidget(p);
 }
 
 Widget chipRateRow(GameSettingViewModel vm) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      const HeadingText('チップレート'),
-      Container(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              padding: EdgeInsets.fromLTRB(0, 0, 0, 8),
-              width: 100.w,
-              child: TextField(
-                  textInputAction: TextInputAction.next,
-                  controller: vm.chipRateController,
-                  textAlign: TextAlign.center,
-                  keyboardType: const TextInputType.numberWithOptions(
-                      signed: true, decimal: true),
-                  inputFormatters: <TextInputFormatter>[
-                    FilteringTextInputFormatter.digitsOnly,
-                    FilteringTextInputFormatter.singleLineFormatter,
-                  ],
-                  decoration: const InputDecoration(
-                    hintText: '1枚あたり',
-                  )),
-            ),
-            const NormalText('G'),
-          ],
-        ),
-      ),
-    ],
-  );
+  final p = RateProperty('チップレート', vm.chipRateController, '1枚あたり', 'G');
+  return rateWidget(p);
 }
 
 Widget memberRow(BuildContext context, GameSettingViewModel vm, int index) {
@@ -278,6 +330,45 @@ Widget addRemoveRow(BuildContext context, GameSettingViewModel vm) {
             vm.removeMemberProperty();
           },
         ),
+      ),
+    ],
+  );
+}
+
+class RateProperty {
+  RateProperty(this.title, this.controller, this.hint, this.trailing);
+  String title;
+  TextEditingController controller;
+  String hint;
+  String trailing;
+}
+
+Widget rateWidget(RateProperty property) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      HeadingText(property.title),
+      Container(
+        child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+          Container(
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
+              width: 100,
+              child: TextField(
+                textInputAction: TextInputAction.next,
+                controller: property.controller,
+                textAlign: TextAlign.center,
+                keyboardType: const TextInputType.numberWithOptions(
+                    signed: true, decimal: true),
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.digitsOnly,
+                  FilteringTextInputFormatter.singleLineFormatter,
+                ],
+                decoration: InputDecoration(
+                  hintText: property.hint,
+                ),
+              )),
+          NormalText(property.trailing),
+        ]),
       ),
     ],
   );

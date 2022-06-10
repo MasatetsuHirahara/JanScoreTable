@@ -34,55 +34,69 @@ class GameSettingViewModel extends ChangeNotifier {
   List<MemberProperty> mpList = [];
   bool addButtonVisible = true;
   bool removeButtonVisible = false;
+  TextEditingController gentenController = TextEditingController();
+  TextEditingController kaeshiController = TextEditingController();
+  TextEditingController firstUmaController = TextEditingController();
+  TextEditingController secondUmaController = TextEditingController();
+  TextEditingController thirdUmaController = TextEditingController();
+  TextEditingController fourthUmaController = TextEditingController();
+  TextEditingController tobiController = TextEditingController();
+  TextEditingController yakitoriController = TextEditingController();
+  TextEditingController koController = TextEditingController();
+  InputTypeValue inputType = InputTypeValue.POINT;
 
   List<GameJoinMemberModelEx> gameJoinedMemberList = [];
 
   void listenGameSetting() {
-    localFunc(GameSettingAccessor gsa) {
-      if (isInitializedGameSetting) {
-        return;
-      }
-      if (gsa.isInitialized) {
-        if (gsa.drIdMap.containsKey(drId)) {
-          final gs = gsa.drIdMap[drId];
-          kind = KindValueExtension.fromInt(gs.kind);
-          rateController.text = gs.rate.toString();
-          chipRateController.text = gs.chipRate.toString();
-        }
-        isInitializedGameSetting = true;
-      }
+    final accessor = ref.read(gameSettingAccessor);
+    if (isInitializedGameSetting) {
+      renewGameSetting(drId, accessor);
     }
 
-    final accessor = ref.read(gameSettingAccessor);
-    localFunc(accessor);
     ref.listen<GameSettingAccessor>(gameSettingAccessor, (previous, next) {
-      localFunc(next);
+      if (isInitializedGameSetting) {
+        renewGameSetting(drId, next);
+      }
     });
   }
 
+  void renewGameSetting(int id, GameSettingAccessor gsa) {
+    if (gsa.isInitialized) {
+      if (gsa.drIdMap.containsKey(id)) {
+        final gs = gsa.drIdMap[id];
+        kind = KindValueExtension.fromInt(gs.kind);
+        rateController.text = gs.rate.toString();
+        chipRateController.text = gs.chipRate.toString();
+      }
+      isInitializedGameSetting = true;
+    }
+  }
+
   void listenGameJoinedMember() {
-    localFunc(GameJoinMemberAccessor accessor) {
-      if (isInitializedGameJoinedMember) {
-        return;
-      }
-      if (accessor.isInitialized) {
-        if (accessor.drIdMap.containsKey(drId)) {
-          mpList = [];
-          final gjmList = accessor.drIdMap[drId];
-          for (var i = 0; i < gjmList.length; i++) {
-            addMemberProperty(gjm: gjmList[i]);
-          }
-        }
-        isInitializedGameJoinedMember = true;
-      }
+    final accessor = ref.read(gameJoinMemberAccessor);
+    if (isInitializedGameJoinedMember) {
+      renewMpList(drId, accessor);
     }
 
-    final accessor = ref.read(gameJoinMemberAccessor);
-    localFunc(accessor);
     ref.listen<GameJoinMemberAccessor>(gameJoinMemberAccessor,
         (previous, next) {
-      localFunc(next);
+      if (isInitializedGameJoinedMember) {
+        renewMpList(drId, next);
+      }
     });
+  }
+
+  void renewMpList(int id, GameJoinMemberAccessor accessor) {
+    if (accessor.isInitialized) {
+      if (accessor.drIdMap.containsKey(id)) {
+        mpList = [];
+        final gjmList = accessor.drIdMap[id];
+        for (var i = 0; i < gjmList.length; i++) {
+          addMemberProperty(gjm: gjmList[i]);
+        }
+      }
+      isInitializedGameJoinedMember = true;
+    }
   }
 
   void setKind(KindValue k) {
@@ -109,6 +123,11 @@ class GameSettingViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setInputType(InputTypeValue t) {
+    inputType = t;
+    notifyListeners();
+  }
+
   void addMemberProperty({GameJoinMemberModelEx gjm}) {
     if (gjm == null) {
       mpList.add(MemberProperty());
@@ -127,9 +146,9 @@ class GameSettingViewModel extends ChangeNotifier {
 
   Future<void> removeMemberProperty() async {
     // gjmに関連するデータを削除
-    await ref.read(gameJoinMemberAccessor).deleteWithId(mpList.last.gjmId);
     await ref.read(scoreAccessor).deleteNumber(drId, mpList.length - 1);
     await ref.read(chipScoreAccessor).deleteNumber(drId, mpList.length - 1);
+    await ref.read(gameJoinMemberAccessor).deleteWithId(mpList.last.gjmId);
     mpList.removeLast();
 
     addButtonVisible = mpList.length < maxMemberNum;
@@ -203,6 +222,16 @@ class GameSettingViewModel extends ChangeNotifier {
       final gjm = GameJoinMemberModel.fromParam(m.gjmId, drId, member.id, i);
       ref.read(gameJoinMemberAccessor).upsert(gjm);
     }
+  }
+
+  void copySetting(int id) {
+    final gsa = ref.read(gameSettingAccessor);
+    renewGameSetting(id, gsa);
+
+    final gjm = ref.read(gameJoinMemberAccessor);
+    renewMpList(id, gjm);
+
+    notifyListeners();
   }
 }
 
