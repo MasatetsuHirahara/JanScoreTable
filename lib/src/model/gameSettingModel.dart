@@ -100,6 +100,7 @@ class GameSettingModel extends BaseModel {
     _secondPoint = map[columnSecondPoint] as int;
     _fourthPoint = map[columnFourthPoint] as int;
     _koPoint = map[columnKoPoint] as int;
+    _fireBirdPoint = map[columnFireBirdPoint] as int;
     inputType = map[columnInputType] as int;
     _placeFee = map[columnPlaceFee] as int;
   }
@@ -115,6 +116,7 @@ class GameSettingModel extends BaseModel {
   int _thirdPoint;
   int _fourthPoint;
   int _koPoint;
+  int _fireBirdPoint;
   int inputType;
   int _placeFee;
   int get placeFee => getNullabelColumn(_placeFee);
@@ -133,6 +135,8 @@ class GameSettingModel extends BaseModel {
   set fourthPoint(int p) => _fourthPoint = p;
   int get koPoint => getNullabelColumn(_koPoint);
   set koPoint(int p) => _koPoint = p;
+  int get fireBirdPoint => getNullabelColumn(_fireBirdPoint);
+  set fireBirdPoint(int p) => _fireBirdPoint = p;
 
   int getNullabelColumn(int src) {
     return src != null ? src : 0;
@@ -152,6 +156,7 @@ class GameSettingModel extends BaseModel {
       columnSecondPoint: _secondPoint,
       columnThirdPoint: _thirdPoint,
       columnFourthPoint: _fourthPoint,
+      columnFireBirdPoint: _fireBirdPoint,
       columnInputType: inputType,
       columnPlaceFee: placeFee,
     };

@@ -116,6 +116,7 @@ Widget detailSetting(GameSettingViewModel vm) {
       okaSection(vm),
       rankingPointSection(vm, vm.kind == KindValue.YONMA),
       koRow(vm),
+      fireBirdRow(vm),
       inputTypeRow(vm),
     ],
   );
@@ -166,7 +167,12 @@ Widget rankingPointSection(GameSettingViewModel vm, bool isVisibleFourth) {
 }
 
 Widget koRow(GameSettingViewModel vm) {
-  final p = RateProperty('飛び', vm.koController, 'ポイント', '');
+  final p = RateProperty('飛び', vm.koController, 'なし', '');
+  return rateWidget(p);
+}
+
+Widget fireBirdRow(GameSettingViewModel vm) {
+  final p = RateProperty('焼き鳥', vm.fireBirdController, 'なし', '');
   return rateWidget(p);
 }
 

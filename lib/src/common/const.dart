@@ -15,6 +15,7 @@ const String columnSecondPoint = 'second_point';
 const String columnThirdPoint = 'third_point';
 const String columnFourthPoint = 'fourth_point';
 const String columnKoPoint = 'ko_point';
+const String columnFireBirdPoint = 'fire_bird_point';
 const String columnInputType = 'input_type';
 const String columnMember1 = 'member1';
 const String columnMember2 = 'member2';

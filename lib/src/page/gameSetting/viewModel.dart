@@ -43,6 +43,7 @@ class GameSettingViewModel extends ChangeNotifier {
   TextEditingController fourthRankingPointController = TextEditingController();
   TextEditingController koController = TextEditingController()
     ..text = koPointDefault.toString();
+  TextEditingController fireBirdController = TextEditingController();
   InputTypeValue inputType = InputTypeValue.POINT;
 
   List<GameJoinMemberModelEx> gameJoinedMemberList = [];
@@ -210,6 +211,7 @@ class GameSettingViewModel extends ChangeNotifier {
       ..thirdPoint = int.parse(thirdRankingPointController.text)
       ..fourthPoint = int.parse(fourthRankingPointController.text)
       ..koPoint = int.parse(koController.text)
+      ..fireBirdPoint = int.parse(fireBirdController.text)
       ..inputType = inputType.num;
     ref.read(gameSettingAccessor).upsert(gs);
   }
