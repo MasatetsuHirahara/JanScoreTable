@@ -57,6 +57,8 @@ create table if not exists $tableMember (
   $columnSecondPoint integer,
   $columnThirdPoint integer,
   $columnFourthPoint integer,
+  $columnKoPoint integer,
+  $columnInputType integer,
   $columnPlaceFee integer,
   foreign key ($columnDayRecodeId) references $tableDayRecode(_id) on delete cascade
   );

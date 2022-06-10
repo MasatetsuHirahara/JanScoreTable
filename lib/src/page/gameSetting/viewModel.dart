@@ -20,6 +20,7 @@ class GameSettingViewModel extends ChangeNotifier {
     for (var i = 0; i < defaultMemberNum; i++) {
       mpList.add(MemberProperty());
     }
+    initDetailPointSetting();
     listenGameSetting();
     listenGameJoinedMember();
   }
@@ -40,12 +41,20 @@ class GameSettingViewModel extends ChangeNotifier {
   TextEditingController secondRankingPointController = TextEditingController();
   TextEditingController thirdRankingPointController = TextEditingController();
   TextEditingController fourthRankingPointController = TextEditingController();
-  TextEditingController tobiController = TextEditingController();
-  TextEditingController yakitoriController = TextEditingController();
-  TextEditingController koController = TextEditingController();
+  TextEditingController koController = TextEditingController()
+    ..text = koPointDefault.toString();
   InputTypeValue inputType = InputTypeValue.POINT;
 
   List<GameJoinMemberModelEx> gameJoinedMemberList = [];
+
+  void initDetailPointSetting() {
+    originPointController.text = kind.originDefault.toString();
+    basePointController.text = kind.baseDefault.toString();
+    firstRankingPointController.text = kind.firstDefault.toString();
+    secondRankingPointController.text = kind.secondDefault.toString();
+    thirdRankingPointController.text = kind.thirdDefault.toString();
+    fourthRankingPointController.text = kind.fourthDefault.toString();
+  }
 
   void listenGameSetting() {
     final accessor = ref.read(gameSettingAccessor);
@@ -69,8 +78,13 @@ class GameSettingViewModel extends ChangeNotifier {
         kind = KindValueExtension.fromInt(gs.kind);
         rateController.text = gs.rate.toString();
         chipRateController.text = gs.chipRate.toString();
+        originPointController.text = gs.originPoint.toString();
+        basePointController.text = gs.basePoint.toString();
+        firstRankingPointController.text = gs.firstPoint.toString();
+        secondRankingPointController.text = gs.secondPoint.toString();
+        thirdRankingPointController.text = gs.thirdPoint.toString();
+        fourthRankingPointController.text = gs.fourthPoint.toString();
       }
-      isInitializedGameSetting = true;
     }
   }
 
@@ -99,7 +113,6 @@ class GameSettingViewModel extends ChangeNotifier {
           addMemberProperty(gjm: gjmList[i]);
         }
       }
-      isInitializedGameJoinedMember = true;
     }
   }
 
@@ -111,6 +124,8 @@ class GameSettingViewModel extends ChangeNotifier {
         mpList.add(MemberProperty());
       }
     }
+
+    initDetailPointSetting();
 
     addButtonVisible = mpList.length < maxMemberNum;
     removeButtonVisible = mpList.length > kind.num;
@@ -187,18 +202,29 @@ class GameSettingViewModel extends ChangeNotifier {
       ..drId = drId
       ..kind = kind.num
       ..rate = int.parse(rateController.text)
-      ..chipRate = int.parse(chipRateController.text);
+      ..chipRate = int.parse(chipRateController.text)
+      ..originPoint = int.parse(originPointController.text)
+      ..basePoint = int.parse(basePointController.text)
+      ..firstPoint = int.parse(firstRankingPointController.text)
+      ..secondPoint = int.parse(secondRankingPointController.text)
+      ..thirdPoint = int.parse(thirdRankingPointController.text)
+      ..fourthPoint = int.parse(fourthRankingPointController.text)
+      ..koPoint = int.parse(koController.text)
+      ..inputType = inputType.num;
     ref.read(gameSettingAccessor).upsert(gs);
   }
 
   // メンバーを保存
   Future<void> saveMember(DayRecodeModel dayRecode) async {
+    var saveDrId = drId;
     var day = '';
     if (dayRecode == null) {
-      // drがnullはすでにdrが存在する時なのでread(スコア画面から遷移)
+      // drがnullはすでにdrが存在する時なのでread(スコア画面から遷移した場合)
       final dra = ref.read(dayRecodeAccessor);
       day = dra.drMap[drId].day;
     } else {
+      // 新規追加
+      saveDrId = dayRecode.id;
       day = dayRecode.day;
     }
 
@@ -223,7 +249,9 @@ class GameSettingViewModel extends ChangeNotifier {
       await mAccessor.upsert(member);
 
       // メンバー参加を保存
-      final gjm = GameJoinMemberModel.fromParam(m.gjmId, drId, member.id, i);
+      // idは新規ならnull
+      final gjmId = dayRecode == null ? m.gjmId : null;
+      final gjm = GameJoinMemberModel.fromParam(gjmId, saveDrId, member.id, i);
       ref.read(gameJoinMemberAccessor).upsert(gjm);
     }
   }

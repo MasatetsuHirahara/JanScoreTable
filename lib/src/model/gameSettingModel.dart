@@ -2,6 +2,8 @@
 import '../common/const.dart';
 import 'baseModel.dart';
 
+const koPointDefault = 10;
+
 // ignore: constant_identifier_names
 enum KindValue { YONMA, SANMA }
 
@@ -19,6 +21,37 @@ extension KindValueExtension on KindValue {
     }
     return KindValue.YONMA;
   }
+
+  static final originPointDefault = {
+    KindValue.YONMA: 25000,
+    KindValue.SANMA: 35000,
+  };
+  int get originDefault => originPointDefault[this];
+  static final basePointDefault = {
+    KindValue.YONMA: 30000,
+    KindValue.SANMA: 40000,
+  };
+  int get baseDefault => basePointDefault[this];
+  static final firstPointDefault = {
+    KindValue.YONMA: 20,
+    KindValue.SANMA: 10,
+  };
+  int get firstDefault => firstPointDefault[this];
+  static final secondPointDefault = {
+    KindValue.YONMA: 10,
+    KindValue.SANMA: 0,
+  };
+  int get secondDefault => secondPointDefault[this];
+  static final thirdPointDefault = {
+    KindValue.YONMA: -10,
+    KindValue.SANMA: -10,
+  };
+  int get thirdDefault => thirdPointDefault[this];
+  static final fourthPointDefault = {
+    KindValue.YONMA: -20,
+    KindValue.SANMA: 0,
+  };
+  int get fourthDefault => fourthPointDefault[this];
 
   static final gameNames = {
     KindValue.YONMA: '4麻',
@@ -66,6 +99,8 @@ class GameSettingModel extends BaseModel {
     _originPoint = map[columnOriginPoint] as int;
     _secondPoint = map[columnSecondPoint] as int;
     _fourthPoint = map[columnFourthPoint] as int;
+    _koPoint = map[columnKoPoint] as int;
+    inputType = map[columnInputType] as int;
     _placeFee = map[columnPlaceFee] as int;
   }
 
@@ -79,6 +114,8 @@ class GameSettingModel extends BaseModel {
   int _secondPoint;
   int _thirdPoint;
   int _fourthPoint;
+  int _koPoint;
+  int inputType;
   int _placeFee;
   int get placeFee => getNullabelColumn(_placeFee);
   set placeFee(int fee) => _placeFee = fee;
@@ -94,6 +131,8 @@ class GameSettingModel extends BaseModel {
   set thirdPoint(int p) => _thirdPoint = p;
   int get fourthPoint => getNullabelColumn(_fourthPoint);
   set fourthPoint(int p) => _fourthPoint = p;
+  int get koPoint => getNullabelColumn(_koPoint);
+  set koPoint(int p) => _koPoint = p;
 
   int getNullabelColumn(int src) {
     return src != null ? src : 0;
@@ -113,6 +152,7 @@ class GameSettingModel extends BaseModel {
       columnSecondPoint: _secondPoint,
       columnThirdPoint: _thirdPoint,
       columnFourthPoint: _fourthPoint,
+      columnInputType: inputType,
       columnPlaceFee: placeFee,
     };
     return map;

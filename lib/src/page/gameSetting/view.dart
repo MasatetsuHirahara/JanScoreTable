@@ -110,11 +110,11 @@ class GameSettingPage extends ConsumerWidget {
 Widget detailSetting(GameSettingViewModel vm) {
   return ExpansionTile(
     title: const HeadingText('詳細設定'),
-    tilePadding: EdgeInsets.symmetric(horizontal: 8),
-    childrenPadding: EdgeInsets.fromLTRB(8, 0, 0, 0),
+    tilePadding: const EdgeInsets.symmetric(horizontal: 8),
+    childrenPadding: const EdgeInsets.fromLTRB(8, 0, 0, 0),
     children: [
       okaSection(vm),
-      rankingPointSection(vm, true),
+      rankingPointSection(vm, vm.kind == KindValue.YONMA),
       koRow(vm),
       inputTypeRow(vm),
     ],
@@ -154,10 +154,10 @@ Widget rankingPointSection(GameSettingViewModel vm, bool isVisibleFourth) {
         padding: const EdgeInsets.fromLTRB(16, 0, 0, 0),
         child: Column(
           children: [
-            rateWidget(first),
-            rateWidget(second),
-            rateWidget(third),
-            Visibility(visible: isVisibleFourth, child: rateWidget(fourth)),
+            pointWidget(first),
+            pointWidget(second),
+            pointWidget(third),
+            Visibility(visible: isVisibleFourth, child: pointWidget(fourth)),
           ],
         ),
       ),
@@ -166,7 +166,7 @@ Widget rankingPointSection(GameSettingViewModel vm, bool isVisibleFourth) {
 }
 
 Widget koRow(GameSettingViewModel vm) {
-  final p = RateProperty('飛び', vm.rateController, 'ポイント', '');
+  final p = RateProperty('飛び', vm.koController, 'ポイント', '');
   return rateWidget(p);
 }
 
@@ -366,6 +366,43 @@ Widget rateWidget(RateProperty property) {
                 decoration: InputDecoration(
                   hintText: property.hint,
                 ),
+              )),
+          NormalText(property.trailing),
+        ]),
+      ),
+    ],
+  );
+}
+
+Widget pointWidget(RateProperty property) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      HeadingText(property.title),
+      Container(
+        child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+          Container(
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
+              width: 100,
+              child: TextField(
+                textInputAction: TextInputAction.next,
+                controller: property.controller,
+                textAlign: TextAlign.center,
+                keyboardType: const TextInputType.numberWithOptions(
+                    signed: true, decimal: true),
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.allow(RegExp(r'[-0-9]')),
+                  FilteringTextInputFormatter.singleLineFormatter,
+                ],
+                decoration: InputDecoration(
+                  hintText: property.hint,
+                ),
+                onSubmitted: (value) {
+                  // バリデーション
+                  if (new RegExp(r'[0-9]-').hasMatch(value)) {
+                    property.controller.text = '';
+                  }
+                },
               )),
           NormalText(property.trailing),
         ]),
