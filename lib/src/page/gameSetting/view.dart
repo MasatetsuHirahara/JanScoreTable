@@ -114,7 +114,7 @@ Widget detailSetting(GameSettingViewModel vm) {
     childrenPadding: EdgeInsets.fromLTRB(8, 0, 0, 0),
     children: [
       okaSection(vm),
-      umaSection(vm, true),
+      rankingPointSection(vm, true),
       koRow(vm),
       inputTypeRow(vm),
     ],
@@ -122,8 +122,8 @@ Widget detailSetting(GameSettingViewModel vm) {
 }
 
 Widget okaSection(GameSettingViewModel vm) {
-  final genten = RateProperty('原点', vm.gentenController, '配給原点', '');
-  final kaeshi = RateProperty('返し', vm.kaeshiController, '基準点', '');
+  final originPoint = RateProperty('原点', vm.originPointController, '配給原点', '');
+  final basePoint = RateProperty('返し', vm.basePointController, '基準点', '');
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -132,8 +132,8 @@ Widget okaSection(GameSettingViewModel vm) {
         padding: const EdgeInsets.fromLTRB(16, 0, 0, 0),
         child: Column(
           children: [
-            rateWidget(genten),
-            rateWidget(kaeshi),
+            rateWidget(originPoint),
+            rateWidget(basePoint),
           ],
         ),
       ),
@@ -141,11 +141,11 @@ Widget okaSection(GameSettingViewModel vm) {
   );
 }
 
-Widget umaSection(GameSettingViewModel vm, bool isVisibleFourth) {
-  final first = RateProperty('1着', vm.firstUmaController, '順位点', '');
-  final second = RateProperty('2着', vm.secondUmaController, '順位点', '');
-  final third = RateProperty('3着', vm.thirdUmaController, '順位点', '');
-  final fourth = RateProperty('4着', vm.fourthUmaController, '順位点', '');
+Widget rankingPointSection(GameSettingViewModel vm, bool isVisibleFourth) {
+  final first = RateProperty('1着', vm.firstRankingPointController, '順位点', '');
+  final second = RateProperty('2着', vm.secondRankingPointController, '順位点', '');
+  final third = RateProperty('3着', vm.thirdRankingPointController, '順位点', '');
+  final fourth = RateProperty('4着', vm.fourthRankingPointController, '順位点', '');
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [

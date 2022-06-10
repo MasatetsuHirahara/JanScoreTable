@@ -1,35 +1,38 @@
-final String tableDayRecode = 'day_recode';
-final String columnDay = 'day';
-final String columnId = '_id';
+const String tableDayRecode = 'day_recode';
+const String columnDay = 'day';
+const String columnId = '_id';
 
-final String tableGameSetting = 'game_setting';
-final String columnDayRecodeId = 'day_recode_id';
-final String columnKind = 'kind';
-final String columnRate = 'rate';
-final String columnChipRate = 'chip_rate';
-final String columnPlaceFee = 'place_fee';
-final String columnMember1 = 'member1';
-final String columnMember2 = 'member2';
-final String columnMember3 = 'member3';
-final String columnMember4 = 'member4';
-final String columnMember5 = 'member5';
+const String tableGameSetting = 'game_setting';
+const String columnDayRecodeId = 'day_recode_id';
+const String columnKind = 'kind';
+const String columnRate = 'rate';
+const String columnChipRate = 'chip_rate';
+const String columnPlaceFee = 'place_fee';
+const String columnOriginPoint = 'origin_point';
+const String columnBaasePoint = 'base_point';
+const String columnFirstPoint = 'first_point';
+const String columnSecondPoint = 'second_point';
+const String columnThirdPoint = 'third_point';
+const String columnFourthPoint = 'fourth_point';
+const String columnMember1 = 'member1';
+const String columnMember2 = 'member2';
+const String columnMember3 = 'member3';
+const String columnMember4 = 'member4';
+const String columnMember5 = 'member5';
 
-final String tableMember = 'member';
-final String columnName = 'name';
-final String columnLastJoin = 'lsat_join';
+const String tableMember = 'member';
+const String columnName = 'name';
+const String columnLastJoin = 'lsat_join';
 
-final String tableGameJoinMember = 'game_join_member';
-final String columnMemberId = 'member_id';
-final String columnNumber = 'number';
+const String tableGameJoinMember = 'game_join_member';
+const String columnMemberId = 'member_id';
+const String columnNumber = 'number';
 
-final String tableScore = 'score';
-final String columnScore = 'score';
-final String columnGameCount = 'game_count';
-final String columnRank = 'rank';
+const String tableScore = 'score';
+const String columnScore = 'score';
+const String columnGameCount = 'game_count';
+const String columnRank = 'rank';
 
-final String tableChipScore = 'chip_score';
-final String columnChipScpre = 'chip_score';
-final String columnGameJoinedMemberId = 'game_joined_membr_id';
-
-final int sanma = 3;
-final int yonma = 4;
+const String tableChipScore = 'chip_score';
+const String columnChipScope = 'chip_score';
+const String columnGameJoinedMemberId = 'game_joined_membr_id';

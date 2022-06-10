@@ -34,12 +34,12 @@ class GameSettingViewModel extends ChangeNotifier {
   List<MemberProperty> mpList = [];
   bool addButtonVisible = true;
   bool removeButtonVisible = false;
-  TextEditingController gentenController = TextEditingController();
-  TextEditingController kaeshiController = TextEditingController();
-  TextEditingController firstUmaController = TextEditingController();
-  TextEditingController secondUmaController = TextEditingController();
-  TextEditingController thirdUmaController = TextEditingController();
-  TextEditingController fourthUmaController = TextEditingController();
+  TextEditingController originPointController = TextEditingController();
+  TextEditingController basePointController = TextEditingController();
+  TextEditingController firstRankingPointController = TextEditingController();
+  TextEditingController secondRankingPointController = TextEditingController();
+  TextEditingController thirdRankingPointController = TextEditingController();
+  TextEditingController fourthRankingPointController = TextEditingController();
   TextEditingController tobiController = TextEditingController();
   TextEditingController yakitoriController = TextEditingController();
   TextEditingController koController = TextEditingController();
@@ -49,13 +49,15 @@ class GameSettingViewModel extends ChangeNotifier {
 
   void listenGameSetting() {
     final accessor = ref.read(gameSettingAccessor);
-    if (isInitializedGameSetting) {
+    if (!isInitializedGameSetting) {
       renewGameSetting(drId, accessor);
+      isInitializedGameSetting = true;
     }
 
     ref.listen<GameSettingAccessor>(gameSettingAccessor, (previous, next) {
-      if (isInitializedGameSetting) {
+      if (!isInitializedGameSetting) {
         renewGameSetting(drId, next);
+        isInitializedGameSetting = true;
       }
     });
   }
@@ -74,14 +76,16 @@ class GameSettingViewModel extends ChangeNotifier {
 
   void listenGameJoinedMember() {
     final accessor = ref.read(gameJoinMemberAccessor);
-    if (isInitializedGameJoinedMember) {
+    if (!isInitializedGameJoinedMember) {
       renewMpList(drId, accessor);
+      isInitializedGameJoinedMember = true;
     }
 
     ref.listen<GameJoinMemberAccessor>(gameJoinMemberAccessor,
         (previous, next) {
-      if (isInitializedGameJoinedMember) {
+      if (!isInitializedGameJoinedMember) {
         renewMpList(drId, next);
+        isInitializedGameJoinedMember = true;
       }
     });
   }
