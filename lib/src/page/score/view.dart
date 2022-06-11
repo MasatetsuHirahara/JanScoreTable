@@ -2,7 +2,6 @@ import 'dart:core';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_app/src/page/adjustment/view.dart';
 import 'package:flutter_app/src/page/gameSetting/view.dart';
 import 'package:flutter_app/src/page/score/viewModel.dart';
@@ -274,57 +273,68 @@ class ScorePage extends ConsumerWidget {
                         color: rowColor,
                         child: Row(
                           children: [
-                            Expanded(
-                              child: TextField(
-                                textAlign: TextAlign.center,
-                                controller: cellProperty.controller,
-                                focusNode: cellProperty.focusNode,
-                                textInputAction: TextInputAction.unspecified,
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                        signed: true, decimal: true),
-                                style: TextStyle(
-                                  color: cellProperty.scoreModel.score >= 0
-                                      ? Colors.black
-                                      : Colors.red,
-                                ),
-                                decoration: const InputDecoration(
-                                  border: InputBorder.none,
-                                ),
-                                inputFormatters: <TextInputFormatter>[
-                                  FilteringTextInputFormatter.allow(
-                                      RegExp(r'[-0-9]')),
-                                  FilteringTextInputFormatter
-                                      .singleLineFormatter,
-                                ],
-                                onTap: () {
-                                  // 入力中に他のTFをタップしたら、後処理を呼ぶ
-                                  // タップされたセルとフォーカス中のセルが同じならスルー
-                                  final cd = provider.getFocusCoordinate();
-                                  if (cd != null) {
-                                    if (cd.isNotEqual(rowIndex, index)) {
-                                      print('onTap $rowIndex, $index');
-                                      provider.afterInput(cd.row, cd.col);
-                                    }
-                                  }
-
-                                  // 吹き出し判定
-                                  provider.setSpeechBubble(rowIndex, index);
-
-                                  keyBoardShowProcess(provider);
-                                },
-                                onEditingComplete: () {
-                                  print('aaa');
-                                },
-                                onSubmitted: (value) {
-                                  print('onSubmitted $rowIndex, $index');
-                                  provider
-                                    ..afterInput(rowIndex, index)
-                                    ..clearSpeechBubbleIfNeed();
-                                  keyBoardHideProcess(provider);
-                                },
-                              ),
-                            ),
+                            Expanded(child: InkWell(
+                              onTap: () async {
+                                final a = pointKeyboard(context);
+                              },
+                              // style: ElevatedButton.styleFrom(
+                              //   primary: Colors.transparent,
+                              //   elevation: 0,
+                              // ),
+                            )),
+                            // Expanded(
+                            //   child: TextField(
+                            //     textAlign: TextAlign.center,
+                            //     controller: cellProperty.controller,
+                            //     focusNode: cellProperty.focusNode,
+                            //     textInputAction: TextInputAction.unspecified,
+                            //     keyboardType:
+                            //         const TextInputType.numberWithOptions(
+                            //             signed: true, decimal: true),
+                            //     style: TextStyle(
+                            //       color: cellProperty.scoreModel.score >= 0
+                            //           ? Colors.black
+                            //           : Colors.red,
+                            //     ),
+                            //     decoration: const InputDecoration(
+                            //       border: InputBorder.none,
+                            //     ),
+                            //     inputFormatters: <TextInputFormatter>[
+                            //       FilteringTextInputFormatter.allow(
+                            //           RegExp(r'[-0-9]')),
+                            //       FilteringTextInputFormatter
+                            //           .singleLineFormatter,
+                            //     ],
+                            //     onTap: () async {
+                            //       final a = await pointKeyboard(context);
+                            //
+                            //       // 入力中に他のTFをタップしたら、後処理を呼ぶ
+                            //       // タップされたセルとフォーカス中のセルが同じならスルー
+                            //       final cd = provider.getFocusCoordinate();
+                            //       if (cd != null) {
+                            //         if (cd.isNotEqual(rowIndex, index)) {
+                            //           print('onTap $rowIndex, $index');
+                            //           provider.afterInput(cd.row, cd.col);
+                            //         }
+                            //       }
+                            //
+                            //       // 吹き出し判定
+                            //       provider.setSpeechBubble(rowIndex, index);
+                            //
+                            //       keyBoardShowProcess(provider);
+                            //     },
+                            //     onEditingComplete: () {
+                            //       print('aaa');
+                            //     },
+                            //     onSubmitted: (value) {
+                            //       print('onSubmitted $rowIndex, $index');
+                            //       provider
+                            //         ..afterInput(rowIndex, index)
+                            //         ..clearSpeechBubbleIfNeed();
+                            //       keyBoardHideProcess(provider);
+                            //     },
+                            //   ),
+                            // ),
                             myDivider(rowDividerWidth, height),
                           ],
                         ),
@@ -392,6 +402,16 @@ class ScorePage extends ConsumerWidget {
         width: width, height: height, child: Container(color: Colors.black));
   }
 
+  Future<int> pointKeyboard(BuildContext context) async {
+    return showDialog<int>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return KeyBoard('');
+      },
+    );
+  }
+
 // キーボード表示するときのあれこれ
   void keyBoardShowProcess(ScoreViewModel viewModel) {
     viewModel.setKeyBoardVisible(true);
@@ -412,5 +432,127 @@ class ScorePage extends ConsumerWidget {
   void transitionProcess(BuildContext context, ScoreViewModel scoreViewModel) {
     FocusScope.of(context).unfocus();
     scoreViewModel.clearSpeechBubbleIfNeed();
+  }
+}
+
+class KeyBoard extends StatefulWidget {
+  KeyBoard(
+    this.score, {
+    Key key = null,
+  }) : super(key: key);
+
+  String score;
+
+  @override
+  _KeyBoardState createState() => _KeyBoardState();
+}
+
+class _KeyBoardState extends State<KeyBoard> {
+  void addScore(String src) {
+    setState(() {
+      widget.score += src;
+    });
+  }
+
+  void backSpace() {
+    if (widget.score == '') {
+      return;
+    }
+    setState(() {
+      widget.score = widget.score.substring(0, widget.score.length - 1);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      content: SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
+            HeadingText(widget.score),
+            const Divider(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                for (var i = 9; i >= 7; i--)
+                  ElevatedButton(
+                    onPressed: () {
+                      addScore(i.toString());
+                    },
+                    child: ButtonText(i.toString()),
+                  ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                for (var i = 6; i >= 4; i--)
+                  ElevatedButton(
+                    onPressed: () {
+                      addScore(i.toString());
+                    },
+                    child: ButtonText(i.toString()),
+                  ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                for (var i = 3; i >= 1; i--)
+                  ElevatedButton(
+                    onPressed: () {
+                      addScore(i.toString());
+                    },
+                    child: ButtonText(i.toString()),
+                  ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: widget.score == ''
+                      ? () {
+                          addScore('-');
+                        }
+                      : null,
+                  child: const ButtonText('-'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    addScore('0');
+                  },
+                  child: const ButtonText('0'),
+                ),
+                ElevatedButton(
+                  onPressed: backSpace,
+                  child: const Icon(Icons.backspace_outlined),
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.transparent,
+                    onSurface: Colors.transparent,
+                    elevation: 0,
+                    onPrimary: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          child: const Text('キャンセル'),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        TextButton(
+          child: const Text('保存'),
+          onPressed: () {
+            Navigator.of(context).pop(widget.score);
+          },
+        ),
+      ],
+    );
   }
 }
