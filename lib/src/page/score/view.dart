@@ -2,6 +2,7 @@ import 'dart:core';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_app/src/page/adjustment/view.dart';
 import 'package:flutter_app/src/page/gameSetting/view.dart';
 import 'package:flutter_app/src/page/score/viewModel.dart';
@@ -273,68 +274,63 @@ class ScorePage extends ConsumerWidget {
                         color: rowColor,
                         child: Row(
                           children: [
-                            Expanded(child: InkWell(
-                              onTap: () async {
-                                final a = pointKeyboard(context);
-                              },
-                              // style: ElevatedButton.styleFrom(
-                              //   primary: Colors.transparent,
-                              //   elevation: 0,
-                              // ),
-                            )),
-                            // Expanded(
-                            //   child: TextField(
-                            //     textAlign: TextAlign.center,
-                            //     controller: cellProperty.controller,
-                            //     focusNode: cellProperty.focusNode,
-                            //     textInputAction: TextInputAction.unspecified,
-                            //     keyboardType:
-                            //         const TextInputType.numberWithOptions(
-                            //             signed: true, decimal: true),
-                            //     style: TextStyle(
-                            //       color: cellProperty.scoreModel.score >= 0
-                            //           ? Colors.black
-                            //           : Colors.red,
-                            //     ),
-                            //     decoration: const InputDecoration(
-                            //       border: InputBorder.none,
-                            //     ),
-                            //     inputFormatters: <TextInputFormatter>[
-                            //       FilteringTextInputFormatter.allow(
-                            //           RegExp(r'[-0-9]')),
-                            //       FilteringTextInputFormatter
-                            //           .singleLineFormatter,
-                            //     ],
-                            //     onTap: () async {
-                            //       final a = await pointKeyboard(context);
-                            //
-                            //       // 入力中に他のTFをタップしたら、後処理を呼ぶ
-                            //       // タップされたセルとフォーカス中のセルが同じならスルー
-                            //       final cd = provider.getFocusCoordinate();
-                            //       if (cd != null) {
-                            //         if (cd.isNotEqual(rowIndex, index)) {
-                            //           print('onTap $rowIndex, $index');
-                            //           provider.afterInput(cd.row, cd.col);
-                            //         }
-                            //       }
-                            //
-                            //       // 吹き出し判定
-                            //       provider.setSpeechBubble(rowIndex, index);
-                            //
-                            //       keyBoardShowProcess(provider);
-                            //     },
-                            //     onEditingComplete: () {
-                            //       print('aaa');
-                            //     },
-                            //     onSubmitted: (value) {
-                            //       print('onSubmitted $rowIndex, $index');
-                            //       provider
-                            //         ..afterInput(rowIndex, index)
-                            //         ..clearSpeechBubbleIfNeed();
-                            //       keyBoardHideProcess(provider);
-                            //     },
-                            //   ),
-                            // ),
+                            // Expanded(child: InkWell(
+                            //   onTap: () async {
+                            //     final a = pointKeyboard(context);
+                            //     provider.afterInput(rowIndex, index);
+                            //   },
+                            // )),
+                            Expanded(
+                              child: TextField(
+                                textAlign: TextAlign.center,
+                                controller: cellProperty.controller,
+                                focusNode: cellProperty.focusNode,
+                                textInputAction: TextInputAction.unspecified,
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                        signed: true, decimal: true),
+                                style: TextStyle(
+                                  color: cellProperty.scoreModel.score >= 0
+                                      ? Colors.black
+                                      : Colors.red,
+                                ),
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                ),
+                                inputFormatters: <TextInputFormatter>[
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'[-0-9]')),
+                                  FilteringTextInputFormatter
+                                      .singleLineFormatter,
+                                ],
+                                onTap: () async {
+                                  // 入力中に他のTFをタップしたら、後処理を呼ぶ
+                                  // タップされたセルとフォーカス中のセルが同じならスルー
+                                  final cd = provider.getFocusCoordinate();
+                                  if (cd != null) {
+                                    if (cd.isNotEqual(rowIndex, index)) {
+                                      print('onTap $rowIndex, $index');
+                                      provider.afterInput(cd.row, cd.col);
+                                    }
+                                  }
+
+                                  // 吹き出し判定
+                                  provider.setSpeechBubble(rowIndex, index);
+
+                                  keyBoardShowProcess(provider);
+                                },
+                                onEditingComplete: () {
+                                  print('aaa');
+                                },
+                                onSubmitted: (value) {
+                                  print('onSubmitted $rowIndex, $index');
+                                  provider
+                                    ..afterInput(rowIndex, index)
+                                    ..clearSpeechBubbleIfNeed();
+                                  keyBoardHideProcess(provider);
+                                },
+                              ),
+                            ),
                             myDivider(rowDividerWidth, height),
                           ],
                         ),
