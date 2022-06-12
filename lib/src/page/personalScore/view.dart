@@ -84,7 +84,7 @@ Widget tabView(ResultProperty result, bool isVisibleFourth) {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               scoreRow('通算スコア', result.totalScore),
-              scoreRow('通算G', result.totalScore, trailing: 'G'),
+              scoreRow('通算G', result.totalValue, trailing: 'G'),
               rankRow(
                   '平均順位', result.averageRation().toStringAsFixed(rationDigit)),
               rankRow('連対率',
