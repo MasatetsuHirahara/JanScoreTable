@@ -151,7 +151,8 @@ Widget rankSheet(int index, ScoreChartViewModel vm) {
           rankRow(name, ''),
           Divider(),
           rankRow('平均順位', result.averageRation().toStringAsFixed(rationDigit)),
-          rankRow('連対率', result.rentaiRation().toStringAsFixed(rationDigit)),
+          rankRow(
+              '連対率', '${result.rentaiRation().toStringAsFixed(rationDigit)} %'),
           rankRow('1着', rankFormat(result.firstCnt, result.firstRation())),
           rankRow('2着', rankFormat(result.secondCnt, result.secondRation())),
           rankRow('3着', rankFormat(result.thirdCnt, result.thirdRation())),
