@@ -209,9 +209,13 @@ class GameSettingViewModel extends ChangeNotifier {
       ..firstPoint = int.parse(firstRankingPointController.text)
       ..secondPoint = int.parse(secondRankingPointController.text)
       ..thirdPoint = int.parse(thirdRankingPointController.text)
-      ..fourthPoint = int.parse(fourthRankingPointController.text)
+      ..fourthPoint = fourthRankingPointController.text != ''
+          ? int.parse(fourthRankingPointController.text)
+          : null
       ..koPoint = int.parse(koController.text)
-      ..fireBirdPoint = int.parse(fireBirdController.text)
+      ..fireBirdPoint = fireBirdController.text != ''
+          ? int.parse(fireBirdController.text)
+          : null
       ..inputType = inputType.num;
     ref.read(gameSettingAccessor).upsert(gs);
   }
