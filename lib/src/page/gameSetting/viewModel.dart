@@ -177,6 +177,21 @@ class GameSettingViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool validateInput() {
+    //各フィールドはtextFormでやるので、全体の整合性チェック
+
+    // メンバーに同名がいる場合はエラー
+    for (var i = 0; i < mpList.length; i++) {
+      for (var j = i; j < mpList.length; j++) {
+        if (mpList[i].controller.text == mpList[j].controller.text) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
   // 保存ボタンが押された
   Future<void> tappedSave() async {
     final dr = await saveDayRecode();

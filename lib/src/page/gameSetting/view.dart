@@ -119,6 +119,25 @@ class GameSettingPage extends ConsumerWidget {
                             if (isErr) {
                               return;
                             }
+
+                            if (!vm.validateInput()) {
+                              await showDialog<void>(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: NormalText('同じ名前は登録できません'),
+                                      actions: [
+                                        TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: NormalText('閉じる')),
+                                      ],
+                                    );
+                                  });
+
+                              return;
+                            }
                             await vm.tappedSave();
                             Navigator.of(context).pop();
                           },
