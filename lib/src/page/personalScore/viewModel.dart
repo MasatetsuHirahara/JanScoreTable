@@ -36,35 +36,35 @@ class ResultProperty {
     if (joinCnt == 0) {
       return 0;
     }
-    return (firstCnt + secondCnt) / joinCnt;
+    return (firstCnt + secondCnt) / joinCnt * 100;
   }
 
   double firstRation() {
     if (joinCnt == 0) {
       return 0;
     }
-    return firstCnt / joinCnt;
+    return firstCnt / joinCnt * 100;
   }
 
   double secondRation() {
     if (joinCnt == 0) {
       return 0;
     }
-    return secondCnt / joinCnt;
+    return secondCnt / joinCnt * 100;
   }
 
   double thirdRation() {
     if (joinCnt == 0) {
       return 0;
     }
-    return thirdCnt / joinCnt;
+    return thirdCnt / joinCnt * 100;
   }
 
   double fourthRation() {
     if (joinCnt == 0) {
       return 0;
     }
-    return fourthCnt / joinCnt;
+    return fourthCnt / joinCnt * 100;
   }
 
   void cntUp(int rank) {

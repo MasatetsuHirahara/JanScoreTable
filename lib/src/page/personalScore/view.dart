@@ -87,8 +87,8 @@ Widget tabView(ResultProperty result, bool isVisibleFourth) {
               scoreRow('通算G', result.totalScore, trailing: 'G'),
               rankRow(
                   '平均順位', result.averageRation().toStringAsFixed(rationDigit)),
-              rankRow(
-                  '連対率', result.rentaiRation().toStringAsFixed(rationDigit)),
+              rankRow('連対率',
+                  '${result.rentaiRation().toStringAsFixed(rationDigit)} %'),
               rankRow('1着', rankFormat(result.firstCnt, result.firstRation())),
               rankRow(
                   '2着', rankFormat(result.secondCnt, result.secondRation())),
