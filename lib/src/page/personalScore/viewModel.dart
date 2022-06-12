@@ -2,11 +2,17 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_app/src/accessor/personalScore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../accessor/personalChip.dart';
 import '../../model/gameSettingModel.dart';
 
 final _personalScoreAccessor = ChangeNotifierProvider.autoDispose
     .family<PersonalScoreAccessor, int>((ref, mId) {
   return PersonalScoreAccessor(ref, mId);
+});
+
+final _personalChipAccessor = ChangeNotifierProvider.autoDispose
+    .family<PersonalChipAccessor, int>((ref, mId) {
+  return PersonalChipAccessor(ref, mId);
 });
 
 class ResultProperty {
@@ -18,6 +24,8 @@ class ResultProperty {
   int joinCnt = 0;
   int totalScore = 0;
   int totalValue = 0;
+  int totalChipScore = 0;
+  int totalChipValue = 0;
 
   double averageRation() {
     if (joinCnt == 0) {
@@ -110,14 +118,11 @@ class PersonalScoreViewModel extends ChangeNotifier {
     result3 = ResultProperty();
     result4 = ResultProperty();
     for (final s in scoreList) {
-      print('R4 ${result4.totalScore}');
       name = s.name;
 
       var result = result4;
       if (s.kind == KindValue.SANMA.num) {
         result = result3;
-      } else {
-        print('s score: ${s.score}');
       }
 
       // スコア表のセルが空欄にされているケースはスルー
@@ -129,7 +134,23 @@ class PersonalScoreViewModel extends ChangeNotifier {
         ..totalScore += s.score
         ..totalValue += s.score * s.rate;
     }
-    print('END ${result4.totalScore}');
+
+    final chipScore = await ref.read(_personalChipAccessor(mId)).get();
+    for (final c in chipScore) {
+      var result = result4;
+      if (c.kind == KindValue.SANMA.num) {
+        result = result3;
+      }
+      // 空欄にされているケースはスルー
+      if (c.score == null || c.rate == null) {
+        continue;
+      }
+
+      result
+        ..totalChipScore += c.score
+        ..totalChipValue += c.score * c.rate;
+    }
+
     notifyListeners();
   }
 }

@@ -125,13 +125,13 @@ class GameSettingPage extends ConsumerWidget {
                                   context: context,
                                   builder: (context) {
                                     return AlertDialog(
-                                      title: NormalText('同じ名前は登録できません'),
+                                      title: const NormalText('同じ名前は登録できません'),
                                       actions: [
                                         TextButton(
                                             onPressed: () {
                                               Navigator.of(context).pop();
                                             },
-                                            child: NormalText('閉じる')),
+                                            child: const NormalText('閉じる')),
                                       ],
                                     );
                                   });

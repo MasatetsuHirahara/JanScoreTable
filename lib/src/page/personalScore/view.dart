@@ -83,6 +83,7 @@ Widget tabView(ResultProperty result, bool isVisibleFourth) {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
+              scoreRow('総半荘数', result.joinCnt),
               scoreRow('通算スコア', result.totalScore),
               scoreRow('通算G', result.totalValue, trailing: 'G'),
               rankRow(
@@ -97,6 +98,9 @@ Widget tabView(ResultProperty result, bool isVisibleFourth) {
                   visible: isVisibleFourth,
                   child: rankRow('4着',
                       rankFormat(result.fourthCnt, result.fourthRation()))),
+              Divider(),
+              scoreRow('通算チップスコア', result.totalChipScore),
+              scoreRow('通算チップG', result.totalChipValue, trailing: 'G'),
             ],
           ),
         ),

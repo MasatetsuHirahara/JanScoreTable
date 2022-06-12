@@ -29,6 +29,7 @@ class GameSettingViewModel extends ChangeNotifier {
   bool isInitializedGameSetting = false;
   bool isInitializedGameJoinedMember = false;
 
+  int gameSettingId;
   TextEditingController rateController = TextEditingController();
   TextEditingController chipRateController = TextEditingController();
   KindValue kind = KindValue.YONMA;
@@ -76,6 +77,7 @@ class GameSettingViewModel extends ChangeNotifier {
     if (gsa.isInitialized) {
       if (gsa.drIdMap.containsKey(id)) {
         final gs = gsa.drIdMap[id];
+        gameSettingId = gs.id;
         kind = KindValueExtension.fromInt(gs.kind);
         rateController.text = gs.rate.toString();
         chipRateController.text = gs.chipRate.toString();
@@ -182,7 +184,7 @@ class GameSettingViewModel extends ChangeNotifier {
 
     // メンバーに同名がいる場合はエラー
     for (var i = 0; i < mpList.length; i++) {
-      for (var j = i; j < mpList.length; j++) {
+      for (var j = i + 1; j < mpList.length; j++) {
         if (mpList[i].controller.text == mpList[j].controller.text) {
           return false;
         }
@@ -215,6 +217,7 @@ class GameSettingViewModel extends ChangeNotifier {
   // ゲーム設定を保存
   void saveGameSetting() {
     final gs = GameSettingModel()
+      ..id = gameSettingId
       ..drId = drId
       ..kind = kind.num
       ..rate = int.parse(rateController.text)
