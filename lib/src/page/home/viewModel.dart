@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_app/src/page/personalList/view.dart';
 
+import '../about/view.dart';
 import '../base/baseBottomNavigationItemPage.dart';
 import '../gameList/view.dart';
 
@@ -9,7 +10,7 @@ class HomePageViewModel extends ChangeNotifier {
     pageList = [
       GameListPage(),
       PersonalListPage(),
-      GameListPage(),
+      AboutPage(),
     ];
   }
 
