@@ -310,14 +310,15 @@ class GameSettingPage extends ConsumerWidget {
         koRow(vm),
         fireBirdRow(vm),
         inputTypeRow(vm),
+        roundTypeRow(vm),
       ],
     );
   }
 
   Widget okaSection(GameSettingViewModel vm) {
     final originPoint =
-        RateProperty('原点', vm.originPointController, '配給原点', '');
-    final basePoint = RateProperty('返し', vm.basePointController, '基準点', '');
+        RateProperty('原点', vm.originPointController, '百点単位', '00');
+    final basePoint = RateProperty('返し', vm.basePointController, '百点単位', '00');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -392,6 +393,35 @@ class GameSettingPage extends ConsumerWidget {
                 value: InputTypeValue.SOTEN,
                 groupValue: groupValue,
                 onChanged: vm.setInputType,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget roundTypeRow(GameSettingViewModel vm) {
+    final groupValue = vm.roundType;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const HeadingText('切り上げ'),
+        Container(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const NormalText('五捨六入'),
+              Radio(
+                value: RoundType.GOSYA,
+                groupValue: groupValue,
+                onChanged: vm.setRoundType,
+              ),
+              const NormalText('四捨五入'),
+              Radio(
+                value: RoundType.SISYA,
+                groupValue: groupValue,
+                onChanged: vm.setRoundType,
               ),
             ],
           ),

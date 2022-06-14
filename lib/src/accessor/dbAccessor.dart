@@ -52,7 +52,7 @@ create table if not exists $tableMember (
   $columnRate integer,
   $columnChipRate integer,
   $columnOriginPoint integer,
-  $columnBaasePoint integer,
+  $columnBasePoint integer,
   $columnFirstPoint integer,
   $columnSecondPoint integer,
   $columnThirdPoint integer,
@@ -60,6 +60,7 @@ create table if not exists $tableMember (
   $columnKoPoint integer,
   $columnFireBirdPoint integer,
   $columnInputType integer,
+  $columnRoundType integer,
   $columnPlaceFee integer,
   foreign key ($columnDayRecodeId) references $tableDayRecode(_id) on delete cascade
   );
@@ -84,7 +85,11 @@ create table if not exists $tableMember (
   $columnGameCount integer,
   $columnNumber integer,
   $columnScore integer,
+  $columnOriginScore integer,
   $columnRank integer,
+  $columnRankRemark integer,
+  $columnKo integer,
+  $columnFireBird integer,
   foreign key ($columnDayRecodeId) references $tableDayRecode(_id) on delete cascade,
   unique ($columnDayRecodeId, $columnGameCount, $columnNumber)
   );

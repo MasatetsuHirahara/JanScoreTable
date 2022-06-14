@@ -70,20 +70,23 @@ class ButtonText extends StatelessWidget {
 }
 
 class ScoreText extends StatelessWidget {
-  const ScoreText(this.score, {this.trailing});
+  const ScoreText(this.score, {this.trailing, this.fontSize = 16});
   final String trailing;
   final int score;
+  final double fontSize;
   @override
   Widget build(BuildContext context) {
-    var text = score.toString();
+    var text = score != null ? score.toString() : '';
     if (trailing != null) {
       text += ' $trailing';
     }
+    final color = (score != null && score >= 0) ? Colors.black : Colors.red;
+
     return Text(
       text,
       style: TextStyle(
-        color: score >= 0 ? Colors.black : Colors.red,
-        fontSize: 16.sp,
+        color: color,
+        fontSize: fontSize.sp,
       ),
     );
   }

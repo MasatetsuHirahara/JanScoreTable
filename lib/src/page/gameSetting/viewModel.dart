@@ -46,6 +46,7 @@ class GameSettingViewModel extends ChangeNotifier {
     ..text = koPointDefault.toString();
   TextEditingController fireBirdController = TextEditingController();
   InputTypeValue inputType = InputTypeValue.POINT;
+  RoundType roundType = RoundType.GOSYA;
 
   List<GameJoinMemberModelEx> gameJoinedMemberList = [];
 
@@ -150,6 +151,11 @@ class GameSettingViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setRoundType(RoundType t) {
+    roundType = t;
+    notifyListeners();
+  }
+
   void addMemberProperty({GameJoinMemberModelEx gjm}) {
     if (gjm == null) {
       mpList.add(MemberProperty());
@@ -234,7 +240,8 @@ class GameSettingViewModel extends ChangeNotifier {
       ..fireBirdPoint = fireBirdController.text != ''
           ? int.parse(fireBirdController.text)
           : null
-      ..inputType = inputType.num;
+      ..inputType = inputType.num
+      ..roundType = roundType.num;
     ref.read(gameSettingAccessor).upsert(gs);
   }
 

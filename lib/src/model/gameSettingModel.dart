@@ -4,6 +4,43 @@ import 'baseModel.dart';
 
 const koPointDefault = 10;
 
+enum RankRemarkType { KAMICHA, SIMOCHA, DIVIDE }
+
+extension RankRemarkTypeExtension on RankRemarkType {
+  static final numbers = {
+    RankRemarkType.KAMICHA: 1,
+    RankRemarkType.SIMOCHA: 2,
+    RankRemarkType.DIVIDE: 3,
+  };
+  int get num => numbers[this];
+  static RankRemarkType fromInt(int target) {
+    for (final v in RankRemarkType.values) {
+      if (target == v.num) {
+        return v;
+      }
+    }
+    return RankRemarkType.KAMICHA;
+  }
+}
+
+enum RoundType { GOSYA, SISYA }
+
+extension RoundTypeExtension on RoundType {
+  static final numbers = {
+    RoundType.GOSYA: 5,
+    RoundType.SISYA: 4,
+  };
+  int get num => numbers[this];
+  static RoundType fromInt(int target) {
+    for (final v in RoundType.values) {
+      if (target == v.num) {
+        return v;
+      }
+    }
+    return RoundType.GOSYA;
+  }
+}
+
 // ignore: constant_identifier_names
 enum KindValue { YONMA, SANMA }
 
@@ -23,13 +60,13 @@ extension KindValueExtension on KindValue {
   }
 
   static final originPointDefault = {
-    KindValue.YONMA: 25000,
-    KindValue.SANMA: 35000,
+    KindValue.YONMA: 250,
+    KindValue.SANMA: 350,
   };
   int get originDefault => originPointDefault[this];
   static final basePointDefault = {
-    KindValue.YONMA: 30000,
-    KindValue.SANMA: 40000,
+    KindValue.YONMA: 300,
+    KindValue.SANMA: 400,
   };
   int get baseDefault => basePointDefault[this];
   static final firstPointDefault = {
@@ -94,14 +131,15 @@ class GameSettingModel extends BaseModel {
     rate = map[columnRate] as int;
     chipRate = map[columnChipRate] as int;
     _originPoint = map[columnOriginPoint] as int;
-    _basePoint = map[columnBaasePoint] as int;
+    _basePoint = map[columnBasePoint] as int;
     _firstPoint = map[columnFirstPoint] as int;
-    _originPoint = map[columnOriginPoint] as int;
     _secondPoint = map[columnSecondPoint] as int;
+    _thirdPoint = map[columnThirdPoint] as int;
     _fourthPoint = map[columnFourthPoint] as int;
     _koPoint = map[columnKoPoint] as int;
     _fireBirdPoint = map[columnFireBirdPoint] as int;
     inputType = map[columnInputType] as int;
+    roundType = map[columnRoundType] as int;
     _placeFee = map[columnPlaceFee] as int;
   }
 
@@ -118,6 +156,7 @@ class GameSettingModel extends BaseModel {
   int _koPoint;
   int _fireBirdPoint;
   int inputType;
+  int roundType;
   int _placeFee;
   int get placeFee => getNullabelColumn(_placeFee);
   set placeFee(int fee) => _placeFee = fee;
@@ -151,15 +190,45 @@ class GameSettingModel extends BaseModel {
       columnRate: rate,
       columnChipRate: chipRate,
       columnOriginPoint: _originPoint,
-      columnBaasePoint: _basePoint,
+      columnBasePoint: _basePoint,
       columnFirstPoint: _firstPoint,
       columnSecondPoint: _secondPoint,
       columnThirdPoint: _thirdPoint,
       columnFourthPoint: _fourthPoint,
       columnFireBirdPoint: _fireBirdPoint,
       columnInputType: inputType,
+      columnRoundType: roundType,
       columnPlaceFee: placeFee,
     };
     return map;
+  }
+
+  int getRankPoint(int rank) {
+    switch (rank) {
+      case 1:
+        return firstPoint;
+      case 2:
+        return secondPoint;
+      case 3:
+        return thirdPoint;
+      case 4:
+        return fourthPoint;
+      default:
+        return 0;
+    }
+  }
+
+  // 同点でウマを分ける場合
+  int getDivideRankPoint(int rank) {
+    switch (rank) {
+      case 1:
+        return (firstPoint + secondPoint) ~/ 2;
+      case 2:
+        return (secondPoint + thirdPoint) ~/ 2;
+      case 3:
+        return (thirdPoint + fourthPoint) ~/ 2;
+      default:
+        return 0;
+    }
   }
 }
