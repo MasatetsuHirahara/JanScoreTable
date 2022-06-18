@@ -201,13 +201,12 @@ class OriginScoreViewModel extends ChangeNotifier {
     }
   }
 
+  /// 入力後の処理
   void afterInput(int row, int col, int originScore) {
-    print('afterInput $row , $col');
-
-    // 順位とスコアを更新
+    // 入力内容を保存
     final rowProperty = rowPropertyList[row]..setOriginScore(col, originScore);
 
-    // 入力が完了していれば、スコアを計算
+    // 入力が完了していれば、ランクとスコアを計算
     if (rowProperty.isInputComplete(gameSettingModel.kind)) {
       rowProperty
         ..setRank()
@@ -377,19 +376,24 @@ class ScoreRowProperty {
         // 備考がなければ計算しない
         if (s.scoreModel.rankRemark != null) {
           final remarkType =
-              RankRemarkTypeExtension.fromInt(s.scoreModel.rankRemark);
+              SamePointTypeExtension.fromInt(s.scoreModel.rankRemark);
           switch (remarkType) {
-            case RankRemarkType.KAMICHA:
+            case SamePointType.KAMICHA:
               point += gameSettingModel.getRankPoint(s.scoreModel.rank);
               break;
-            case RankRemarkType.SIMOCHA:
-              point += gameSettingModel.getRankPoint(s.scoreModel.rank + 1);
-              break;
-            case RankRemarkType.DIVIDE:
+            case SamePointType.DIVIDE:
               point += gameSettingModel.getDivideRankPoint(s.scoreModel.rank);
               break;
           }
         }
+      }
+
+      // 飛びの計算
+      if (s.scoreModel.originScore < 0) {
+        point -= gameSettingModel.koPoint;
+      }
+      if (s.scoreModel.ko == 1) {
+        point += gameSettingModel.koPoint;
       }
 
       s.scoreModel.score = point;

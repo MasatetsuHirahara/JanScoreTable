@@ -311,6 +311,7 @@ class GameSettingPage extends ConsumerWidget {
         fireBirdRow(vm),
         inputTypeRow(vm),
         roundTypeRow(vm),
+        samePointTypeRow(vm),
       ],
     );
   }
@@ -422,6 +423,35 @@ class GameSettingPage extends ConsumerWidget {
                 value: RoundType.SISYA,
                 groupValue: groupValue,
                 onChanged: vm.setRoundType,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget samePointTypeRow(GameSettingViewModel vm) {
+    final groupValue = vm.samePointType;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const HeadingText('同点の場合'),
+        Container(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const NormalText('上家優先'),
+              Radio(
+                value: SamePointType.KAMICHA,
+                groupValue: groupValue,
+                onChanged: vm.setSamePointType,
+              ),
+              const NormalText('分け'),
+              Radio(
+                value: SamePointType.DIVIDE,
+                groupValue: groupValue,
+                onChanged: vm.setSamePointType,
               ),
             ],
           ),

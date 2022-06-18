@@ -47,6 +47,7 @@ class GameSettingViewModel extends ChangeNotifier {
   TextEditingController fireBirdController = TextEditingController();
   InputTypeValue inputType = InputTypeValue.POINT;
   RoundType roundType = RoundType.GOSYA;
+  SamePointType samePointType = SamePointType.KAMICHA;
 
   List<GameJoinMemberModelEx> gameJoinedMemberList = [];
 
@@ -156,6 +157,11 @@ class GameSettingViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setSamePointType(SamePointType t) {
+    samePointType = t;
+    notifyListeners();
+  }
+
   void addMemberProperty({GameJoinMemberModelEx gjm}) {
     if (gjm == null) {
       mpList.add(MemberProperty());
@@ -241,7 +247,8 @@ class GameSettingViewModel extends ChangeNotifier {
           ? int.parse(fireBirdController.text)
           : null
       ..inputType = inputType.num
-      ..roundType = roundType.num;
+      ..roundType = roundType.num
+      ..samePointType = samePointType.num;
     ref.read(gameSettingAccessor).upsert(gs);
   }
 

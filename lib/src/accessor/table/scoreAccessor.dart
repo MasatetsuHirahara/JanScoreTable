@@ -97,9 +97,6 @@ class DayScore {
   Map<int, Map<int, ScoreModel>> map = {}; // [gameCount,[number,score]]
 
   void updateMaxIfNeed(ScoreModel m) {
-    if (m.gameCount == null) {
-      print('aaa');
-    }
     if (maxGameCount < m.gameCount) {
       maxGameCount = m.gameCount;
     }

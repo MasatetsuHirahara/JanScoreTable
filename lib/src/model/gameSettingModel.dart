@@ -4,22 +4,21 @@ import 'baseModel.dart';
 
 const koPointDefault = 10;
 
-enum RankRemarkType { KAMICHA, SIMOCHA, DIVIDE }
+enum SamePointType { KAMICHA, DIVIDE }
 
-extension RankRemarkTypeExtension on RankRemarkType {
+extension SamePointTypeExtension on SamePointType {
   static final numbers = {
-    RankRemarkType.KAMICHA: 1,
-    RankRemarkType.SIMOCHA: 2,
-    RankRemarkType.DIVIDE: 3,
+    SamePointType.KAMICHA: 1,
+    SamePointType.DIVIDE: 2,
   };
   int get num => numbers[this];
-  static RankRemarkType fromInt(int target) {
-    for (final v in RankRemarkType.values) {
+  static SamePointType fromInt(int target) {
+    for (final v in SamePointType.values) {
       if (target == v.num) {
         return v;
       }
     }
-    return RankRemarkType.KAMICHA;
+    return SamePointType.KAMICHA;
   }
 }
 
@@ -140,6 +139,7 @@ class GameSettingModel extends BaseModel {
     _fireBirdPoint = map[columnFireBirdPoint] as int;
     inputType = map[columnInputType] as int;
     roundType = map[columnRoundType] as int;
+    samePointType = map[columnRoundType] as int;
     _placeFee = map[columnPlaceFee] as int;
   }
 
@@ -157,6 +157,7 @@ class GameSettingModel extends BaseModel {
   int _fireBirdPoint;
   int inputType;
   int roundType;
+  int samePointType;
   int _placeFee;
   int get placeFee => getNullabelColumn(_placeFee);
   set placeFee(int fee) => _placeFee = fee;
@@ -198,6 +199,7 @@ class GameSettingModel extends BaseModel {
       columnFireBirdPoint: _fireBirdPoint,
       columnInputType: inputType,
       columnRoundType: roundType,
+      columnSamePointType: samePointType,
       columnPlaceFee: placeFee,
     };
     return map;

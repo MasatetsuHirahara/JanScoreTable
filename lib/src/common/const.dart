@@ -18,6 +18,7 @@ const String columnKoPoint = 'ko_point';
 const String columnFireBirdPoint = 'fire_bird_point';
 const String columnInputType = 'input_type';
 const String columnRoundType = 'round_type';
+const String columnSamePointType = 'same_point_type';
 const String columnMember1 = 'member1';
 const String columnMember2 = 'member2';
 const String columnMember3 = 'member3';

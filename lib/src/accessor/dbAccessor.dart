@@ -61,6 +61,7 @@ create table if not exists $tableMember (
   $columnFireBirdPoint integer,
   $columnInputType integer,
   $columnRoundType integer,
+  $columnSamePointType integer,
   $columnPlaceFee integer,
   foreign key ($columnDayRecodeId) references $tableDayRecode(_id) on delete cascade
   );
