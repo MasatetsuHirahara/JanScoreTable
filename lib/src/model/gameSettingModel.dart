@@ -4,12 +4,12 @@ import 'baseModel.dart';
 
 const koPointDefault = 10;
 
-enum SamePointType { KAMICHA, DIVIDE }
+enum SamePointType { kamicha, divide }
 
 extension SamePointTypeExtension on SamePointType {
   static final numbers = {
-    SamePointType.KAMICHA: 1,
-    SamePointType.DIVIDE: 2,
+    SamePointType.kamicha: 1,
+    SamePointType.divide: 2,
   };
   int get num => numbers[this];
   static SamePointType fromInt(int target) {
@@ -18,16 +18,16 @@ extension SamePointTypeExtension on SamePointType {
         return v;
       }
     }
-    return SamePointType.KAMICHA;
+    return SamePointType.kamicha;
   }
 }
 
-enum RoundType { GOSYA, SISYA }
+enum RoundType { gosha, shisha }
 
 extension RoundTypeExtension on RoundType {
   static final numbers = {
-    RoundType.GOSYA: 5,
-    RoundType.SISYA: 4,
+    RoundType.gosha: 5,
+    RoundType.shisha: 4,
   };
   int get num => numbers[this];
   static RoundType fromInt(int target) {
@@ -36,17 +36,17 @@ extension RoundTypeExtension on RoundType {
         return v;
       }
     }
-    return RoundType.GOSYA;
+    return RoundType.gosha;
   }
 }
 
 // ignore: constant_identifier_names
-enum KindValue { YONMA, SANMA }
+enum KindValue { yonma, sanma }
 
 extension KindValueExtension on KindValue {
   static final numbers = {
-    KindValue.YONMA: 4,
-    KindValue.SANMA: 3,
+    KindValue.yonma: 4,
+    KindValue.sanma: 3,
   };
   int get num => numbers[this];
   static KindValue fromInt(int target) {
@@ -55,43 +55,43 @@ extension KindValueExtension on KindValue {
         return v;
       }
     }
-    return KindValue.YONMA;
+    return KindValue.yonma;
   }
 
   static final originPointDefault = {
-    KindValue.YONMA: 250,
-    KindValue.SANMA: 350,
+    KindValue.yonma: 250,
+    KindValue.sanma: 350,
   };
   int get originDefault => originPointDefault[this];
   static final basePointDefault = {
-    KindValue.YONMA: 300,
-    KindValue.SANMA: 400,
+    KindValue.yonma: 300,
+    KindValue.sanma: 400,
   };
   int get baseDefault => basePointDefault[this];
   static final firstPointDefault = {
-    KindValue.YONMA: 20,
-    KindValue.SANMA: 10,
+    KindValue.yonma: 20,
+    KindValue.sanma: 10,
   };
   int get firstDefault => firstPointDefault[this];
   static final secondPointDefault = {
-    KindValue.YONMA: 10,
-    KindValue.SANMA: 0,
+    KindValue.yonma: 10,
+    KindValue.sanma: 0,
   };
   int get secondDefault => secondPointDefault[this];
   static final thirdPointDefault = {
-    KindValue.YONMA: -10,
-    KindValue.SANMA: -10,
+    KindValue.yonma: -10,
+    KindValue.sanma: -10,
   };
   int get thirdDefault => thirdPointDefault[this];
   static final fourthPointDefault = {
-    KindValue.YONMA: -20,
-    KindValue.SANMA: 0,
+    KindValue.yonma: -20,
+    KindValue.sanma: 0,
   };
   int get fourthDefault => fourthPointDefault[this];
 
   static final gameNames = {
-    KindValue.YONMA: '4麻',
-    KindValue.SANMA: '3麻',
+    KindValue.yonma: '4麻',
+    KindValue.sanma: '3麻',
   };
   String get gameName => gameNames[this];
 }
@@ -137,9 +137,10 @@ class GameSettingModel extends BaseModel {
     _fourthPoint = map[columnFourthPoint] as int;
     _koPoint = map[columnKoPoint] as int;
     _fireBirdPoint = map[columnFireBirdPoint] as int;
-    inputType = map[columnInputType] as int;
-    roundType = map[columnRoundType] as int;
-    samePointType = map[columnRoundType] as int;
+    inputType = InputTypeValueExtension.fromInt(map[columnInputType] as int);
+    roundType = RoundTypeExtension.fromInt(map[columnRoundType] as int);
+    samePointType =
+        SamePointTypeExtension.fromInt(map[columnSamePointType] as int);
     _placeFee = map[columnPlaceFee] as int;
   }
 
@@ -155,9 +156,9 @@ class GameSettingModel extends BaseModel {
   int _fourthPoint;
   int _koPoint;
   int _fireBirdPoint;
-  int inputType;
-  int roundType;
-  int samePointType;
+  InputTypeValue inputType;
+  RoundType roundType;
+  SamePointType samePointType;
   int _placeFee;
   int get placeFee => getNullabelColumn(_placeFee);
   set placeFee(int fee) => _placeFee = fee;
@@ -196,10 +197,11 @@ class GameSettingModel extends BaseModel {
       columnSecondPoint: _secondPoint,
       columnThirdPoint: _thirdPoint,
       columnFourthPoint: _fourthPoint,
+      columnKoPoint: _koPoint,
       columnFireBirdPoint: _fireBirdPoint,
-      columnInputType: inputType,
-      columnRoundType: roundType,
-      columnSamePointType: samePointType,
+      columnInputType: inputType.num,
+      columnRoundType: roundType.num,
+      columnSamePointType: samePointType.num,
       columnPlaceFee: placeFee,
     };
     return map;

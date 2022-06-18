@@ -35,7 +35,7 @@ class ScoreViewModel extends ChangeNotifier {
   List<String> nameList = ['', '', '', ''];
   SpeechBubbleProperty speechBubbleProperty = SpeechBubbleProperty();
   GameSettingModel gameSettingModel = GameSettingModel()
-    ..kind = KindValue.YONMA.num;
+    ..kind = KindValue.yonma.num;
   bool keyBoardVisible = false;
 
   void listenGameSetting() {

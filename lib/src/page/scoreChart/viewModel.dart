@@ -222,7 +222,7 @@ class ScoreChartViewModel extends ChangeNotifier {
     localFunc(GameSettingAccessor p) {
       if (p.drIdMap.containsKey(drId)) {
         final gs = p.drIdMap[drId];
-        isVisibleFourth = gs.kind == KindValue.YONMA.num;
+        isVisibleFourth = gs.kind == KindValue.yonma.num;
       }
       notifyListeners();
     }

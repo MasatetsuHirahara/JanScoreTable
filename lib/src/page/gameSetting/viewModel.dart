@@ -32,7 +32,7 @@ class GameSettingViewModel extends ChangeNotifier {
   int gameSettingId;
   TextEditingController rateController = TextEditingController();
   TextEditingController chipRateController = TextEditingController();
-  KindValue kind = KindValue.YONMA;
+  KindValue kind = KindValue.yonma;
   List<MemberProperty> mpList = [];
   bool addButtonVisible = true;
   bool removeButtonVisible = false;
@@ -46,8 +46,8 @@ class GameSettingViewModel extends ChangeNotifier {
     ..text = koPointDefault.toString();
   TextEditingController fireBirdController = TextEditingController();
   InputTypeValue inputType = InputTypeValue.POINT;
-  RoundType roundType = RoundType.GOSYA;
-  SamePointType samePointType = SamePointType.KAMICHA;
+  RoundType roundType = RoundType.gosha;
+  SamePointType samePointType = SamePointType.kamicha;
 
   List<GameJoinMemberModelEx> gameJoinedMemberList = [];
 
@@ -65,12 +65,14 @@ class GameSettingViewModel extends ChangeNotifier {
     if (!isInitializedGameSetting) {
       renewGameSetting(drId, accessor);
       isInitializedGameSetting = true;
+      notifyListeners();
     }
 
     ref.listen<GameSettingAccessor>(gameSettingAccessor, (previous, next) {
       if (!isInitializedGameSetting) {
         renewGameSetting(drId, next);
         isInitializedGameSetting = true;
+        notifyListeners();
       }
     });
   }
@@ -89,6 +91,11 @@ class GameSettingViewModel extends ChangeNotifier {
         secondRankingPointController.text = gs.secondPoint.toString();
         thirdRankingPointController.text = gs.thirdPoint.toString();
         fourthRankingPointController.text = gs.fourthPoint.toString();
+        koController.text = gs.koPoint.toString();
+        fireBirdController.text = gs.fireBirdPoint.toString();
+        inputType = gs.inputType;
+        roundType = gs.roundType;
+        samePointType = gs.samePointType;
       }
     }
   }
@@ -98,6 +105,7 @@ class GameSettingViewModel extends ChangeNotifier {
     if (!isInitializedGameJoinedMember) {
       renewMpList(drId, accessor);
       isInitializedGameJoinedMember = true;
+      notifyListeners();
     }
 
     ref.listen<GameJoinMemberAccessor>(gameJoinMemberAccessor,
@@ -105,6 +113,7 @@ class GameSettingViewModel extends ChangeNotifier {
       if (!isInitializedGameJoinedMember) {
         renewMpList(drId, next);
         isInitializedGameJoinedMember = true;
+        notifyListeners();
       }
     });
   }
@@ -246,9 +255,9 @@ class GameSettingViewModel extends ChangeNotifier {
       ..fireBirdPoint = fireBirdController.text != ''
           ? int.parse(fireBirdController.text)
           : null
-      ..inputType = inputType.num
-      ..roundType = roundType.num
-      ..samePointType = samePointType.num;
+      ..inputType = inputType
+      ..roundType = roundType
+      ..samePointType = samePointType;
     ref.read(gameSettingAccessor).upsert(gs);
   }
 

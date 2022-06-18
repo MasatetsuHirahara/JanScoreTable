@@ -1,6 +1,38 @@
 import '../common/const.dart';
 import 'baseModel.dart';
 
+enum WindType { east, south, west, north, none }
+
+extension WindeTypeExtension on WindType {
+  static final numbers = {
+    WindType.east: 4,
+    WindType.south: 3,
+    WindType.west: 2,
+    WindType.north: 1,
+    WindType.none: 0,
+  };
+  int get num => numbers[this];
+  static WindType fromInt(int target) {
+    for (final v in WindType.values) {
+      if (target == v.num) {
+        return v;
+      }
+    }
+    return WindType.east;
+  }
+
+  // 東南西北の順に優先
+  int compareTo(WindType to) {
+    if (num > to.num) {
+      return 1;
+    }
+    if (num < to.num) {
+      return -1;
+    }
+    return 0;
+  }
+}
+
 class ScoreModel extends BaseModel {
   ScoreModel(
       {int id, this.drId, this.gameCount, this.number, int score, this.rank}) {
@@ -21,6 +53,9 @@ class ScoreModel extends BaseModel {
         map.containsKey(columnRankRemark) ? map[columnRankRemark] as int : 0;
     ko = map.containsKey(columnKo) ? map[columnKo] as int : 0;
     fireBird = map.containsKey(columnFireBird) ? map[columnFireBird] as int : 0;
+    wind = map.containsKey(columnWind)
+        ? WindeTypeExtension.fromInt(map[columnWind] as int)
+        : WindType.none;
   }
 
   int drId;
@@ -32,6 +67,7 @@ class ScoreModel extends BaseModel {
   int rankRemark;
   int ko;
   int fireBird;
+  WindType wind;
 
   int get score => _score == null ? 0 : _score;
   set score(int score) => _score = score;
@@ -54,6 +90,7 @@ class ScoreModel extends BaseModel {
       columnRankRemark: rankRemark,
       columnKo: ko,
       columnFireBird: fireBird,
+      columnWind: wind.num,
     };
     return map;
   }

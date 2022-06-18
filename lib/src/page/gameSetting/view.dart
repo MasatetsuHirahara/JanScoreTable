@@ -164,13 +164,13 @@ class GameSettingPage extends ConsumerWidget {
             children: [
               const NormalText('四麻'),
               Radio(
-                value: KindValue.YONMA,
+                value: KindValue.yonma,
                 groupValue: groupValue,
                 onChanged: vm.setKind,
               ),
               const NormalText('三麻'),
               Radio(
-                value: KindValue.SANMA,
+                value: KindValue.sanma,
                 groupValue: groupValue,
                 onChanged: vm.setKind,
               ),
@@ -306,7 +306,7 @@ class GameSettingPage extends ConsumerWidget {
       childrenPadding: const EdgeInsets.fromLTRB(8, 0, 0, 0),
       children: [
         okaSection(vm),
-        rankingPointSection(vm, vm.kind == KindValue.YONMA),
+        rankingPointSection(vm, vm.kind == KindValue.yonma),
         koRow(vm),
         fireBirdRow(vm),
         inputTypeRow(vm),
@@ -414,13 +414,13 @@ class GameSettingPage extends ConsumerWidget {
             children: [
               const NormalText('五捨六入'),
               Radio(
-                value: RoundType.GOSYA,
+                value: RoundType.gosha,
                 groupValue: groupValue,
                 onChanged: vm.setRoundType,
               ),
               const NormalText('四捨五入'),
               Radio(
-                value: RoundType.SISYA,
+                value: RoundType.shisha,
                 groupValue: groupValue,
                 onChanged: vm.setRoundType,
               ),
@@ -443,13 +443,13 @@ class GameSettingPage extends ConsumerWidget {
             children: [
               const NormalText('上家優先'),
               Radio(
-                value: SamePointType.KAMICHA,
+                value: SamePointType.kamicha,
                 groupValue: groupValue,
                 onChanged: vm.setSamePointType,
               ),
               const NormalText('分け'),
               Radio(
-                value: SamePointType.DIVIDE,
+                value: SamePointType.divide,
                 groupValue: groupValue,
                 onChanged: vm.setSamePointType,
               ),

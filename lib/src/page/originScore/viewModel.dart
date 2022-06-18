@@ -34,7 +34,7 @@ class OriginScoreViewModel extends ChangeNotifier {
   int joinedCount = defaultJoinedCount;
   List<String> nameList = ['', '', '', ''];
   GameSettingModel gameSettingModel = GameSettingModel()
-    ..kind = KindValue.YONMA.num;
+    ..kind = KindValue.yonma.num;
 
   void listenGameSetting() {
     final gsa = ref.read(gameSettingAccessor);
@@ -206,10 +206,10 @@ class OriginScoreViewModel extends ChangeNotifier {
     // 入力内容を保存
     final rowProperty = rowPropertyList[row]..setOriginScore(col, originScore);
 
-    // 入力が完了していれば、ランクとスコアを計算
+    // 入力が完了していれば、ランクとスコアを計算、設定のバリデーションを行う
     if (rowProperty.isInputComplete(gameSettingModel.kind)) {
       rowProperty
-        ..setRank()
+        ..setRank(gameSettingModel)
         ..calculateScore(gameSettingModel);
     } else {
       //完了していない場合はクリアする
@@ -238,32 +238,53 @@ class OriginScoreViewModel extends ChangeNotifier {
     }
   }
 
-  bool validateRowScoreSum(int row) {
-    // 最後のゲームでゲーム人数以上入力されていない場合はvalidate対象外
-    if (row == rowPropertyList.length - 1) {
-      var cnt = 0;
-      for (final p in rowPropertyList[row].scoreCellList) {
-        if (p.scoreModel.originScoreString == '') {
-          cnt++;
-        }
-      }
+  // bool validateRowScore(int row) {
+  //   if (!validateRowScoreSum(row)) {
+  //     return false;
+  //   }
+  //
+  //   if (!rowPropertyList[row].validateKoCnt()) {
+  //     return false;
+  //   }
+  // }
 
-      if (cnt < joinedCount) {
-        return true;
-      }
-    }
-
-    return rowPropertyList[row].validateScoreSum(gameSettingModel.kind);
-  }
+  // bool validateRowScoreSum(int row) {
+  //   // 最後のゲームでなければ対象外
+  //   if (row != rowPropertyList.length - 1) {
+  //     return true;
+  //     var cnt = 0;
+  //     for (final p in rowPropertyList[row].scoreCellList) {
+  //       if (p.scoreModel.originScoreString == '') {
+  //         cnt++;
+  //       }
+  //     }
+  //
+  //     if (cnt < joinedCount) {
+  //       return true;
+  //     }
+  //   }
+  //
+  //   return rowPropertyList[row].validateScoreSum(gameSettingModel.kind);
+  // }
 
   bool isInputComplete(int row) {
     return rowPropertyList[row].isInputComplete(gameSettingModel.kind);
+  }
+
+  bool canVisibleSuggest(int row) {
+    // 入力完了数 - 1　が入力されていれば可能
+    return rowPropertyList[row].isInputComplete(gameSettingModel.kind - 1);
   }
 
   int getSuggestScore(int row, int col) {
     final total = rowPropertyList[row].getOtherTotalOriginScore(col);
 
     return (gameSettingModel.originPoint * gameSettingModel.kind) - total;
+  }
+
+  ValidateErr validateInput(int row) {
+    final p = rowPropertyList[row];
+    return p.validateInput(gameSettingModel);
   }
 }
 
@@ -274,7 +295,7 @@ class ScoreRowProperty {
   }
 
   List<ScoreCellProperty> scoreCellList = [];
-  bool isNeedRemark = false;
+  bool isNeedWind = false;
 
   void addNewScore(int num) {
     for (var i = 0; i < num; i++) {
@@ -316,17 +337,20 @@ class ScoreRowProperty {
   }
 
   //　順位を設定
-  void setRank() {
+  void setRank(GameSettingModel gameSettingModel) {
     // スコアでソート済みのリストを作る
-    final newList = List.of(scoreCellList)
+    final sortList = List.of(scoreCellList)
+      ..sort((a, b) => b.scoreModel.wind.compareTo(a.scoreModel.wind))
       ..sort((a, b) =>
           b.scoreModel.originScore.compareTo(a.scoreModel.originScore));
 
     // ソート済みリストから保持するlistのランクを更新
     var rank = 0;
-    var hasSameRank = false;
+    var isNeedWind = false;
     int lastScore;
-    for (final s in newList) {
+    var rankStock = 0;
+    for (var i = 0; i < sortList.length; i++) {
+      final s = sortList[i];
       if (s.scoreModel.number == null) {
         continue;
       }
@@ -336,17 +360,39 @@ class ScoreRowProperty {
         continue;
       }
 
-      // 同じ点数の場合は同じ順位とする
-      if (lastScore == s.scoreModel.originScore) {
-        hasSameRank = true;
+      // 同じ点数で、分けの場合
+      if (lastScore == s.scoreModel.originScore &&
+          gameSettingModel.samePointType == SamePointType.divide) {
+        // 分けの場合は、rankはそのまま。
+        // isSameOn
+        scoreCellList[s.scoreModel.number].isSame = true;
+
+        // 一つ前のフラグも更新。1回目のループで入ることはないので-1で対応
+        final before = sortList[i - 1];
+        scoreCellList[before.scoreModel.number].isSame = true;
+
+        // 同着分の順位を下げるためrankStockを追加しておく
+        rankStock++;
       } else {
+        // 分けではないのでrankを更新
+        scoreCellList[s.scoreModel.number].isSame = false;
         rank++;
+        rank += rankStock;
+        rankStock = 0;
         lastScore = s.scoreModel.originScore;
+
+        // 同じ点数で風がセットされていない場合は警告を出す
+        if (lastScore == s.scoreModel.originScore) {
+          if (s.scoreModel.wind == WindType.none) {
+            isNeedWind = true;
+          }
+        }
       }
+
       scoreCellList[s.scoreModel.number].scoreModel.rank = rank;
     }
 
-    isNeedRemark = hasSameRank;
+    isNeedWind = isNeedWind;
   }
 
   void calculateScore(GameSettingModel gameSettingModel) {
@@ -360,32 +406,28 @@ class ScoreRowProperty {
       // オカ計算
       var point = s.scoreModel.originScore - gameSettingModel.basePoint;
       if (s.scoreModel.rank == 1) {
-        point += (gameSettingModel.basePoint - gameSettingModel.originPoint) *
+        var oka = (gameSettingModel.basePoint - gameSettingModel.originPoint) *
             gameSettingModel.kind;
+        if (s.isSame) {
+          // トップ同点はオカを分ける
+          // TODO 3人同時の考慮
+          oka ~/= 2;
+        }
+        point += oka;
       }
 
       // 切り上げ/切り捨てをして、下1桁は落とす
-      point = MyUtil.customRound(point, gameSettingModel.roundType);
+      point = MyUtil.customRound(point, gameSettingModel.roundType.num);
       point ~/= 10;
 
-      // ウマを計算　同点を考慮して分岐
-      if (!isNeedRemark) {
-        // 同点は存在しないので素直に計算
+      // ウマを計算
+      if (!s.isSame) {
+        // 同点でない場合は素直に加算
         point += gameSettingModel.getRankPoint(s.scoreModel.rank);
       } else {
-        // 備考がなければ計算しない
-        if (s.scoreModel.rankRemark != null) {
-          final remarkType =
-              SamePointTypeExtension.fromInt(s.scoreModel.rankRemark);
-          switch (remarkType) {
-            case SamePointType.KAMICHA:
-              point += gameSettingModel.getRankPoint(s.scoreModel.rank);
-              break;
-            case SamePointType.DIVIDE:
-              point += gameSettingModel.getDivideRankPoint(s.scoreModel.rank);
-              break;
-          }
-        }
+        // 同点の場合は分けて計算
+        // TODO 3人同時の考慮
+        point += gameSettingModel.getDivideRankPoint(s.scoreModel.rank);
       }
 
       // 飛びの計算
@@ -393,11 +435,46 @@ class ScoreRowProperty {
         point -= gameSettingModel.koPoint;
       }
       if (s.scoreModel.ko == 1) {
-        point += gameSettingModel.koPoint;
+        // TODO 3人同時の考慮
+        // 同時飛ばしもあり得る
+        point += (gameSettingModel.koPoint * getWasKoCnt()) ~/ getKoCnt();
       }
 
       s.scoreModel.score = point;
     }
+  }
+
+  bool validateKoCnt() {
+    // マイナス点がいるのにkoが０はおかしい
+    if (getWasKoCnt() > 0) {
+      if (getKoCnt() <= 0) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  int getWasKoCnt() {
+    var ret = 0;
+    for (final s in scoreCellList) {
+      if (s.scoreModel.originScore < 0) {
+        ret++;
+      }
+    }
+
+    return ret;
+  }
+
+  int getKoCnt() {
+    var ret = 0;
+    for (final s in scoreCellList) {
+      if (s.scoreModel.ko == 1) {
+        ret++;
+      }
+    }
+
+    return ret;
   }
 
   void clearScore() {
@@ -440,22 +517,45 @@ class ScoreRowProperty {
   //   return ret;
   // }
 
-  bool validateScoreSum(int kind) {
+  bool validateOriginScoreSum(GameSettingModel gameSettingModel) {
     var total = 0;
     var cnt = 0;
     for (final c in scoreCellList) {
       if (c.scoreModel.originScoreString == '') {
-        cnt++;
         continue;
       }
-      total += c.scoreModel.score;
+      cnt++;
+      total += c.scoreModel.originScore;
     }
 
-    if (total != 0) {
+    // 入力が満たない場合は対象外
+    if (cnt < gameSettingModel.kind) {
+      return true;
+    }
+
+    // 配給点と合わなければエラー
+    if (total != gameSettingModel.originPoint * gameSettingModel.kind) {
       return false;
     }
 
     return true;
+  }
+
+  ValidateErr validateInput(GameSettingModel gameSettingModel) {
+    final ret = ValidateErr();
+    if (isNeedWind) {
+      ret.isNeedWind = true;
+    }
+
+    if (!validateKoCnt()) {
+      ret.errKoCnt = true;
+    }
+
+    if (!validateOriginScoreSum(gameSettingModel)) {
+      ret.errScoreSum = true;
+    }
+
+    return ret;
   }
 }
 
@@ -463,11 +563,27 @@ class ScoreRowProperty {
 class ScoreCellProperty {
   ScoreCellProperty() {}
   ScoreModel scoreModel = ScoreModel();
+  bool isSame = false; // 同点が他にいるか？
 
   void clearScore() {
     scoreModel
       ..score = null
       ..rank = null;
+    isSame = false;
+  }
+}
+
+class ValidateErr {
+  bool isNeedWind = false;
+  bool errScoreSum = false;
+  bool errKoCnt = false;
+
+  bool hasErr() {
+    return isNeedWind || errScoreSum || errKoCnt;
+  }
+
+  bool noErr() {
+    return !hasErr();
   }
 }
 

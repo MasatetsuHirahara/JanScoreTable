@@ -121,7 +121,7 @@ class PersonalScoreViewModel extends ChangeNotifier {
       name = s.name;
 
       var result = result4;
-      if (s.kind == KindValue.SANMA.num) {
+      if (s.kind == KindValue.sanma.num) {
         result = result3;
       }
 
@@ -138,7 +138,7 @@ class PersonalScoreViewModel extends ChangeNotifier {
     final chipScore = await ref.read(_personalChipAccessor(mId)).get();
     for (final c in chipScore) {
       var result = result4;
-      if (c.kind == KindValue.SANMA.num) {
+      if (c.kind == KindValue.sanma.num) {
         result = result3;
       }
       // 空欄にされているケースはスルー

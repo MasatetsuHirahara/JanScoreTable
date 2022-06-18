@@ -41,6 +41,7 @@ const String columnRank = 'rank';
 const String columnRankRemark = 'rank_remark';
 const String columnKo = 'ko';
 const String columnFireBird = 'fire_bird';
+const String columnWind = 'wind';
 
 const String tableChipScore = 'chip_score';
 const String columnChipScope = 'chip_score';

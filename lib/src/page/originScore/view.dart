@@ -114,7 +114,10 @@ class OriginScorePage extends ConsumerWidget {
       height: height,
       width: screenSize.width,
       child: Row(children: [
-        subjectCell(height, ''),
+        SizedBox(
+            width: subjectCellWidth,
+            height: height,
+            child: subjectCell(height, '')),
         Expanded(
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
@@ -151,7 +154,10 @@ class OriginScorePage extends ConsumerWidget {
       height: height,
       width: screenSize.width,
       child: Row(children: [
-        subjectCell(height, '計'),
+        SizedBox(
+            width: subjectCellWidth,
+            height: height,
+            child: subjectCell(height, '計')),
         Expanded(
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
@@ -209,7 +215,8 @@ class OriginScorePage extends ConsumerWidget {
         itemCount: vm.rowPropertyList.length,
         itemBuilder: (context, index) {
           var rowColor = Colors.white;
-          if (vm.validateRowScoreSum(index) == false) {
+          final err = vm.validateInput(index);
+          if (err.hasErr()) {
             rowColor = Colors.yellow;
           }
 
@@ -222,16 +229,73 @@ class OriginScorePage extends ConsumerWidget {
     );
   }
 
+  Future<int> waringAlert(BuildContext context, ValidateErr err) async {
+    var errText = '';
+    if (err.errScoreSum) {
+      errText += 'スコアの合計が違います\n';
+    }
+    if (err.isNeedWind) {
+      errText += '風の設定をしてください\n';
+    }
+    if (err.errKoCnt) {
+      errText += '飛びの設定をしてください\n';
+    }
+
+    return showDialog<int>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('エラー詳細'),
+          content: Text(errText),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('閉じる'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+        ;
+      },
+    );
+  }
+
   Widget scoreRow(BuildContext context, double height, int rowIndex,
       OriginScoreViewModel vm, Color rowColor) {
     final screenSize = MediaQuery.of(context).size;
     final rowProperty = vm.rowPropertyList[rowIndex];
 
+    final validateErr = vm.validateInput(rowIndex);
     return SizedBox(
       height: height,
       width: screenSize.width,
       child: Row(children: [
-        subjectCell(height, '${(rowIndex + 1).toString()}'),
+        SizedBox(
+          width: subjectCellWidth,
+          height: height,
+          child: Stack(
+            children: [
+              subjectCell(height, '${(rowIndex + 1).toString()}'),
+              Visibility(
+                visible: validateErr.hasErr(),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.warning_outlined,
+                      color: Colors.red,
+                    ),
+                    onPressed: () {
+                      waringAlert(context, validateErr);
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         Expanded(
           child: ListView.builder(
               scrollDirection: Axis.horizontal,
@@ -252,7 +316,7 @@ class OriginScorePage extends ConsumerWidget {
                           child: InkWell(
                             onTap: () async {
                               int suggest;
-                              if (vm.isInputComplete(rowIndex)) {
+                              if (vm.canVisibleSuggest(rowIndex)) {
                                 suggest = vm.getSuggestScore(rowIndex, index);
                               }
                               final originScore = await pointKeyboard(context,
@@ -309,15 +373,11 @@ class OriginScorePage extends ConsumerWidget {
   }
 
   Widget subjectCell(double height, String title) {
-    return SizedBox(
-      width: subjectCellWidth,
-      height: height,
-      child: Container(
-        color: Colors.blueGrey,
-        child: Align(
-          alignment: Alignment.center,
-          child: NormalText(title),
-        ),
+    return Container(
+      color: Colors.blueGrey,
+      child: Align(
+        alignment: Alignment.center,
+        child: NormalText(title),
       ),
     );
   }
