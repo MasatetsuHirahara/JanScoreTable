@@ -13,7 +13,7 @@ class ScoreModel extends BaseModel {
     gameCount = map[columnGameCount] as int;
     number = map[columnNumber] as int;
     _score = map.containsKey(columnScore) ? map[columnScore] as int : null;
-    originScore = map.containsKey(columnOriginScore)
+    _originScore = map.containsKey(columnOriginScore)
         ? map[columnOriginScore] as int
         : null;
     rank = map.containsKey(columnRank) ? map[columnRank] as int : 0;
@@ -27,7 +27,7 @@ class ScoreModel extends BaseModel {
   int gameCount;
   int number;
   int _score;
-  int originScore;
+  int _originScore;
   int rank;
   int rankRemark;
   int ko;
@@ -36,8 +36,10 @@ class ScoreModel extends BaseModel {
   int get score => _score == null ? 0 : _score;
   set score(int score) => _score = score;
   String get scoreString => _score == null ? '' : _score.toString();
+  int get originScore => _originScore == null ? 0 : _originScore;
+  set originScore(int score) => _originScore = score;
   String get originScoreString =>
-      originScore == null ? '' : originScore.toString();
+      _originScore == null ? '' : originScore.toString();
 
   @override
   Map<String, Object> toMap() {
@@ -47,7 +49,7 @@ class ScoreModel extends BaseModel {
       columnGameCount: gameCount,
       columnNumber: number,
       columnScore: _score,
-      columnOriginScore: originScore,
+      columnOriginScore: _originScore,
       columnRank: rank,
       columnRankRemark: rankRemark,
       columnKo: ko,

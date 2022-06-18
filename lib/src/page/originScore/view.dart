@@ -238,6 +238,9 @@ class OriginScorePage extends ConsumerWidget {
               itemCount: rowProperty.scoreCellList.length,
               itemBuilder: (context, index) {
                 final cell = rowProperty.scoreCellList[index];
+                final os = cell.scoreModel.originScoreString != ''
+                    ? cell.scoreModel.originScore * 100
+                    : null;
                 return SizedBox(
                   width: (screenSize.width - subjectCellWidth) /
                       rowProperty.scoreCellList.length,
@@ -248,12 +251,15 @@ class OriginScorePage extends ConsumerWidget {
                         Expanded(
                           child: InkWell(
                             onTap: () async {
-                              final originScore = await pointKeyboard(context);
+                              int suggest;
+                              if (vm.isInputComplete(rowIndex)) {
+                                suggest = vm.getSuggestScore(rowIndex, index);
+                              }
+                              final originScore = await pointKeyboard(context,
+                                  cell.scoreModel.originScoreString, suggest);
                               vm.afterInput(rowIndex, index, originScore);
                             },
-                            child: Center(
-                                child: ScoreText(cell.scoreModel.originScore,
-                                    fontSize: 20)),
+                            child: Center(child: ScoreText(os, fontSize: 20)),
                           ),
                         ),
                         Divider(),
@@ -321,12 +327,13 @@ class OriginScorePage extends ConsumerWidget {
         width: width, height: height, child: Container(color: Colors.black));
   }
 
-  Future<int> pointKeyboard(BuildContext context) async {
+  Future<int> pointKeyboard(
+      BuildContext context, String defaultStr, int suggest) async {
     return showDialog<int>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
-        return KeyBoard('');
+        return KeyBoard(defaultStr, suggest);
       },
     );
   }
@@ -357,11 +364,16 @@ class OriginScorePage extends ConsumerWidget {
 
 class KeyBoard extends StatefulWidget {
   KeyBoard(
-    this.score, {
+    this.score,
+    this.suggest, {
     Key key = null,
-  }) : super(key: key);
+  }) : super(key: key) {
+    defaultScore = score;
+  }
 
   String score;
+  String defaultScore;
+  int suggest;
 
   @override
   _KeyBoardState createState() => _KeyBoardState();
@@ -389,7 +401,20 @@ class _KeyBoardState extends State<KeyBoard> {
       content: SingleChildScrollView(
         child: Column(
           children: <Widget>[
-            HeadingText(widget.score),
+            Row(
+              children: [
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: HeadingText(widget.score),
+                  ),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                const NormalText('00'),
+              ],
+            ),
             const Divider(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -456,6 +481,18 @@ class _KeyBoardState extends State<KeyBoard> {
                 ),
               ],
             ),
+            Visibility(
+              visible: widget.suggest != null,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop(widget.suggest);
+                },
+                child: Text('自動計算(${widget.suggest})'),
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.orangeAccent, //ボタンの背景色
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -463,13 +500,16 @@ class _KeyBoardState extends State<KeyBoard> {
         TextButton(
           child: const Text('キャンセル'),
           onPressed: () {
-            Navigator.of(context).pop();
+            final ret = widget.defaultScore != ''
+                ? int.parse(widget.defaultScore)
+                : null;
+            Navigator.of(context).pop(ret);
           },
         ),
         TextButton(
           child: const Text('保存'),
           onPressed: () {
-            final ret = widget.score != '' ? int.parse(widget.score) : 0;
+            final ret = widget.score != '' ? int.parse(widget.score) : null;
             Navigator.of(context).pop(ret);
           },
         ),

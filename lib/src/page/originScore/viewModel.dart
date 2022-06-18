@@ -212,6 +212,9 @@ class OriginScoreViewModel extends ChangeNotifier {
       rowProperty
         ..setRank()
         ..calculateScore(gameSettingModel);
+    } else {
+      //完了していない場合はクリアする
+      rowProperty.clearScore();
     }
 
     final accessor = ref.read(scoreAccessor);
@@ -241,7 +244,7 @@ class OriginScoreViewModel extends ChangeNotifier {
     if (row == rowPropertyList.length - 1) {
       var cnt = 0;
       for (final p in rowPropertyList[row].scoreCellList) {
-        if (p.scoreModel.originScore == null) {
+        if (p.scoreModel.originScoreString == '') {
           cnt++;
         }
       }
@@ -252,6 +255,16 @@ class OriginScoreViewModel extends ChangeNotifier {
     }
 
     return rowPropertyList[row].validateScoreSum(gameSettingModel.kind);
+  }
+
+  bool isInputComplete(int row) {
+    return rowPropertyList[row].isInputComplete(gameSettingModel.kind);
+  }
+
+  int getSuggestScore(int row, int col) {
+    final total = rowPropertyList[row].getOtherTotalOriginScore(col);
+
+    return (gameSettingModel.originPoint * gameSettingModel.kind) - total;
   }
 }
 
@@ -279,7 +292,7 @@ class ScoreRowProperty {
   bool isInputComplete(int completeNum) {
     var inputCnt = 0;
     for (final s in scoreCellList) {
-      if (s.scoreModel.originScore != null) {
+      if (s.scoreModel.originScoreString != '') {
         inputCnt++;
         if (inputCnt >= completeNum) {
           return true;
@@ -289,23 +302,37 @@ class ScoreRowProperty {
     return false;
   }
 
+  /// 引数のcol以外の合算
+  int getOtherTotalOriginScore(int col) {
+    var ret = 0;
+
+    for (var i = 0; i < scoreCellList.length; i++) {
+      if (i == col) {
+        continue;
+      }
+      ret += scoreCellList[i].scoreModel.originScore;
+    }
+
+    return ret;
+  }
+
   //　順位を設定
   void setRank() {
     // スコアでソート済みのリストを作る
     final newList = List.of(scoreCellList)
-        .where((sp) =>
-            sp.scoreModel.originScore != null && sp.scoreModel.number != null)
-        .toList();
-
-    newList.sort(
-        (a, b) => b.scoreModel.originScore.compareTo(a.scoreModel.originScore));
+      ..sort((a, b) =>
+          b.scoreModel.originScore.compareTo(a.scoreModel.originScore));
 
     // ソート済みリストから保持するlistのランクを更新
     var rank = 0;
     var hasSameRank = false;
     int lastScore;
     for (final s in newList) {
-      if (scoreCellList[s.scoreModel.number].scoreModel.originScore == null) {
+      if (s.scoreModel.number == null) {
+        continue;
+      }
+      if (scoreCellList[s.scoreModel.number].scoreModel.originScoreString ==
+          '') {
         scoreCellList[s.scoreModel.number].scoreModel.rank = null;
         continue;
       }
@@ -325,7 +352,9 @@ class ScoreRowProperty {
 
   void calculateScore(GameSettingModel gameSettingModel) {
     for (final s in scoreCellList) {
+      // 順位はなしはスコアをなくす
       if (s.scoreModel.rank == null) {
+        s.scoreModel.score = null;
         continue;
       }
 
@@ -367,6 +396,12 @@ class ScoreRowProperty {
     }
   }
 
+  void clearScore() {
+    for (final s in scoreCellList) {
+      s.clearScore();
+    }
+  }
+
   ScoreModel getScoreModel(int col) {
     return scoreCellList[col].scoreModel;
   }
@@ -384,7 +419,9 @@ class ScoreRowProperty {
   // }
 
   void setOriginScore(int col, int originScore) {
-    scoreCellList[col].scoreModel.originScore = originScore;
+    scoreCellList[col].scoreModel
+      ..originScore = originScore
+      ..number = col;
   }
 
   void setScoreModel(int col, ScoreModel score) {
@@ -403,7 +440,7 @@ class ScoreRowProperty {
     var total = 0;
     var cnt = 0;
     for (final c in scoreCellList) {
-      if (c.scoreModel.originScore == null) {
+      if (c.scoreModel.originScoreString == '') {
         cnt++;
         continue;
       }
@@ -422,6 +459,12 @@ class ScoreRowProperty {
 class ScoreCellProperty {
   ScoreCellProperty() {}
   ScoreModel scoreModel = ScoreModel();
+
+  void clearScore() {
+    scoreModel
+      ..score = null
+      ..rank = null;
+  }
 }
 
 int scoreCastInt(String src) {
