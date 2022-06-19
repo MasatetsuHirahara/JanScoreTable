@@ -201,7 +201,7 @@ class ScorePage extends ConsumerWidget {
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
         scoreScrollController.animateTo(
             scoreScrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 0),
+            duration: const Duration(milliseconds: 1), // 時間は適当
             curve: Curves.linear);
       });
     }

@@ -95,7 +95,10 @@ class GameSettingPage extends ConsumerWidget {
                       for (var i = 0; i < vm.mpList.length; i++)
                         memberRow(_memberKeyList[i], context, vm, i),
                       addRemoveRow(context, vm),
-                      detailSetting(vm),
+                      Visibility(visible: drId == 0, child: inputTypeRow(vm)),
+                      Visibility(
+                          visible: vm.inputType == InputTypeValue.SOTEN,
+                          child: detailSetting(vm)),
                       Align(
                         alignment: Alignment.center,
                         child: ElevatedButton(
@@ -309,7 +312,6 @@ class GameSettingPage extends ConsumerWidget {
         rankingPointSection(vm, vm.kind == KindValue.yonma),
         koRow(vm),
         fireBirdRow(vm),
-        inputTypeRow(vm),
         roundTypeRow(vm),
         samePointTypeRow(vm),
       ],
