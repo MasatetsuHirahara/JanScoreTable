@@ -17,8 +17,8 @@ class MyUtil {
     final lastStr = srcStr.substring(srcStr.length - 1);
     final last = int.parse(lastStr);
 
-    // 末尾がbase以上なら切り上げ
-    if (last >= base) {
+    // 末尾がbaseより大きければ切り上げ
+    if (last > base) {
       return src - last + 10;
     }
     // 切り捨て

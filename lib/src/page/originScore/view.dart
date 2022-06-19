@@ -94,10 +94,6 @@ class OriginScorePage extends ConsumerWidget {
                   scoreSection(context, scoreCellHeight, vm),
                 ],
               ),
-              // Align(
-              //   alignment: Alignment.topLeft,
-              //   child: speechBubble(context, pProvider),
-              // ),
             ],
           ),
         ),
@@ -193,7 +189,7 @@ class OriginScorePage extends ConsumerWidget {
   Widget scoreSection(
       BuildContext context, double height, OriginScoreViewModel vm) {
     final screenSize = MediaQuery.of(context).size;
-    var totalHeight = MediaQuery.of(context).padding.top + // safeArea
+    final totalHeight = MediaQuery.of(context).padding.top + // safeArea
         AppBar().preferredSize.height +
         nameCellHeight +
         columnDividerHeight +
@@ -201,9 +197,6 @@ class OriginScorePage extends ConsumerWidget {
         columnBoldDividerHeight +
         (scoreCellHeight + columnDividerHeight) *
             vm.rowPropertyList.length.toDouble();
-    // if (vm.keyBoardVisible) {
-    //   totalHeight += MediaQuery.of(context).viewInsets.bottom;
-    // }
 
     final isScroll = screenSize.height <= totalHeight;
     print('scoreSection $isScroll');
@@ -368,40 +361,6 @@ class OriginScorePage extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  Widget bubble(OriginScoreViewModel scoreViewModel, int row, int col) {
-    // if (scoreViewModel.speechBubbleProperty.isVisible == false) {
-    //   return Container();
-    // }
-    //
-    // // 表示対象のセルでない場合は適当なcontainerを返す
-    // // フォーカスセル
-    // if (scoreViewModel.speechBubbleProperty.coordinate.row != row + 1 ||
-    //     scoreViewModel.speechBubbleProperty.coordinate.col != col) {
-    //   return Container();
-    // // }
-    // return Padding(
-    //   padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-    //   child: Container(
-    //     decoration: const ShapeDecoration(
-    //       shape: SpeechBubble(),
-    //       color: Colors.blueGrey,
-    //     ),
-    //     child: Padding(
-    //       padding: const EdgeInsets.all(0),
-    //       child: Center(
-    //         child: TextButton(
-    //           child: NormalText('${scoreViewModel.speechBubbleProperty.score}'),
-    //           onPressed: () {
-    //             keyBoardHideProcess(scoreViewModel);
-    //             scoreViewModel.speechBubbleTap();
-    //           },
-    //         ),
-    //       ),
-    //     ),
-    //   ),
-    // );
   }
 
   Widget subjectCell(double height, String title) {

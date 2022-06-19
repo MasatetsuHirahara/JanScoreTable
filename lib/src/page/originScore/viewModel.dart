@@ -370,6 +370,7 @@ class ScoreRowProperty {
   }
 
   void calculateScore(GameSettingModel gameSettingModel) {
+    var totalScore = 0;
     for (final s in scoreCellList) {
       // 順位はなしはスコアをなくす
       if (s.scoreModel.rank == null) {
@@ -415,6 +416,18 @@ class ScoreRowProperty {
       }
 
       s.scoreModel.score = point;
+      totalScore += point;
+    }
+
+    // 切り上げ切り捨ての影響で、ズレる可能性があるのでトップは調整する
+    // TODO 同時トップの考慮(そもそも同時トップの場合に調整が必要なケースがあるか謎
+    if (totalScore != 0) {
+      for (final s in scoreCellList) {
+        if (s.scoreModel.rank == 1) {
+          s.scoreModel.score -= totalScore;
+          break;
+        }
+      }
     }
   }
 
@@ -461,17 +474,6 @@ class ScoreRowProperty {
     return scoreCellList[col].scoreModel;
   }
 
-  // String getScoreText(int col) {
-  //   return scoreCellList[col].scoreModel.scoreString;
-  // }
-  //
-  // int getScore(int col) {
-  //   return scoreCellList[col].scoreModel.score;
-  // }
-  //
-  // void setScore(int col, int score) {
-  //   scoreCellList[col].scoreModel.score = score;
-  // }
   void setInputValue(int col, InputValue inputValue) {
     scoreCellList[col].scoreModel
       ..originScore = inputValue.originScore
@@ -484,28 +486,30 @@ class ScoreRowProperty {
     scoreCellList[col].scoreModel = score;
   }
 
-  // int sumScore() {
-  //   var ret = 0;
-  //   for (final s in scoreCellList) {
-  //     ret += s.scoreModel.score;
-  //   }
-  //   return ret;
-  // }
-
-  bool validateOriginScoreSum(GameSettingModel gameSettingModel) {
-    var total = 0;
+  bool isNeedValidate(GameSettingModel gameSettingModel) {
     var cnt = 0;
     for (final c in scoreCellList) {
       if (c.scoreModel.originScoreString == '') {
         continue;
       }
       cnt++;
-      total += c.scoreModel.originScore;
     }
 
     // 入力が満たない場合は対象外
     if (cnt < gameSettingModel.kind) {
-      return true;
+      return false;
+    }
+
+    return true;
+  }
+
+  bool validateOriginScoreSum(GameSettingModel gameSettingModel) {
+    var total = 0;
+    for (final c in scoreCellList) {
+      if (c.scoreModel.originScoreString == '') {
+        continue;
+      }
+      total += c.scoreModel.originScore;
     }
 
     // 配給点と合わなければエラー
@@ -525,11 +529,6 @@ class ScoreRowProperty {
       cnt++;
     }
 
-    // 入力が満たない場合は対象外
-    if (cnt < gameSettingModel.kind) {
-      return true;
-    }
-
     if (cnt > gameSettingModel.kind) {
       return false;
     }
@@ -539,6 +538,12 @@ class ScoreRowProperty {
 
   List<errType> validateInput(GameSettingModel gameSettingModel) {
     final ret = <errType>[];
+
+    //　バリデートが必要ない
+    if (!isNeedValidate(gameSettingModel)) {
+      return ret;
+    }
+
     if (!validateOriginScoreSum(gameSettingModel)) {
       ret.add(errType.scoreSum);
     }
