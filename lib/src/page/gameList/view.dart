@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/src/page/gameList/viewModel.dart';
-import 'package:flutter_app/src/page/originScore/view.dart';
 import 'package:flutter_app/src/widget/text.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../widget/dialog.dart';
 import '../base/baseBottomNavigationItemPage.dart';
 import '../gameSetting/view.dart';
+import '../score/view.dart';
 
 final _viewModel = ChangeNotifierProvider.autoDispose((ref) {
   return GameListViewModel(ref);
@@ -34,9 +34,8 @@ class GameListPage extends BaseBottomNavigationItemPage {
                     child: DayRecodeCard(
                         property: cardPropertyList[index],
                         onTap: () {
-                          Navigator.of(context).push<dynamic>(
-                              OriginScorePage.route(
-                                  drId: cardPropertyList[index].dr.id));
+                          Navigator.of(context).push<dynamic>(ScorePage.route(
+                              drId: cardPropertyList[index].dr.id));
                         },
                         onLongTap: () async {
                           final result = await showDialog<bool>(

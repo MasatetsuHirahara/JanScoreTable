@@ -2,11 +2,9 @@ import 'dart:core';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_app/src/page/adjustment/view.dart';
 import 'package:flutter_app/src/page/gameSetting/view.dart';
 import 'package:flutter_app/src/page/score/viewModel.dart';
-import 'package:flutter_app/src/widget/speechBubble.dart';
 import 'package:flutter_app/src/widget/text.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -20,6 +18,7 @@ const scoreCellHeight = 50.0;
 const columnDividerHeight = 1.0;
 const columnBoldDividerHeight = 2.0;
 const rowDividerWidth = 1.0;
+const keyButtonRowCnt = 3;
 
 final _viewModel =
     ChangeNotifierProvider.autoDispose.family<ScoreViewModel, int>((ref, drId) {
@@ -38,7 +37,7 @@ class ScorePage extends ConsumerWidget {
   }
 
   int drId;
-  double keyboardHeight = 0;
+  ScrollController scoreScrollController = ScrollController();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -55,7 +54,6 @@ class ScorePage extends ConsumerWidget {
         actions: [
           IconButton(
             onPressed: () {
-              transitionProcess(context, vm);
               Navigator.of(context)
                   .push<dynamic>(AdjustmentPage.route(drId: drId));
             },
@@ -63,7 +61,6 @@ class ScorePage extends ConsumerWidget {
           ),
           IconButton(
             onPressed: () {
-              transitionProcess(context, vm);
               Navigator.of(context)
                   .push<dynamic>(ChipScorePage.route(drId: drId));
             },
@@ -71,7 +68,6 @@ class ScorePage extends ConsumerWidget {
           ),
           IconButton(
             onPressed: () {
-              transitionProcess(context, vm);
               Navigator.of(context)
                   .push<dynamic>(ScoreChartPage.route(drId: drId));
             },
@@ -79,7 +75,6 @@ class ScorePage extends ConsumerWidget {
           ),
           IconButton(
               onPressed: () {
-                transitionProcess(context, vm);
                 Navigator.of(context)
                     .push<dynamic>(GameSettingPage.route(drId: drId));
               },
@@ -97,7 +92,6 @@ class ScorePage extends ConsumerWidget {
                   totalSection(context, totalCellHeight, vm),
                   myDivider(screenSize.width, columnBoldDividerHeight),
                   scoreSection(context, scoreCellHeight, vm),
-                  keyBoardBlank(context),
                 ],
               ),
               // Align(
@@ -108,13 +102,6 @@ class ScorePage extends ConsumerWidget {
           ),
         ),
       ),
-    );
-  }
-
-  // キーボード分を空けておいて、キーボードの表示非表示でスクロールしないようにする
-  Widget keyBoardBlank(BuildContext context) {
-    return SizedBox(
-      height: MediaQuery.of(context).viewInsets.bottom,
     );
   }
 
@@ -168,30 +155,23 @@ class ScorePage extends ConsumerWidget {
             scrollDirection: Axis.horizontal,
             itemCount: scoreViewModel.totalPointList.length,
             itemBuilder: (context, index) {
-              return Stack(
-                children: [
-                  SizedBox(
-                    width: (screenSize.width - subjectCellWidth) /
-                        scoreViewModel.totalPointList.length,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            color: Colors.white,
-                            child: Center(
-                              child: ScoreText(
-                                  scoreViewModel.totalPointList[index]),
-                            ),
-                          ),
+              return SizedBox(
+                width: (screenSize.width - subjectCellWidth) /
+                    scoreViewModel.totalPointList.length,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        color: Colors.white,
+                        child: Center(
+                          child:
+                              ScoreText(scoreViewModel.totalPointList[index]),
                         ),
-                        myDivider(rowDividerWidth, height)
-                      ],
+                      ),
                     ),
-                  ),
-                  Positioned.fill(
-                    child: bubble(scoreViewModel, -1, index),
-                  ), // scoreのtopが0なので-1...
-                ],
+                    myDivider(rowDividerWidth, height)
+                  ],
+                ),
               );
             },
           ),
@@ -200,35 +180,44 @@ class ScorePage extends ConsumerWidget {
     );
   }
 
-  Widget scoreSection(
-      BuildContext context, double height, ScoreViewModel provider) {
+  Widget scoreSection(BuildContext context, double height, ScoreViewModel vm) {
     final screenSize = MediaQuery.of(context).size;
-    var totalHeight = MediaQuery.of(context).padding.top + // safeArea
+    final totalHeight = MediaQuery.of(context).padding.top +
+        MediaQuery.of(context).padding.bottom +
         AppBar().preferredSize.height +
         nameCellHeight +
         columnDividerHeight +
         totalCellHeight +
         columnBoldDividerHeight +
         (scoreCellHeight + columnDividerHeight) *
-            provider.rowPropertyList.length.toDouble();
-    if (provider.keyBoardVisible) {
-      totalHeight += MediaQuery.of(context).viewInsets.bottom;
-    }
+            vm.rowPropertyList.length.toDouble();
 
     final isScroll = screenSize.height <= totalHeight;
     print('scoreSection $isScroll');
+
+    // スクロールが必要な場合、build後にスクロールする
+    if (vm.isNeedScroll) {
+      vm.isNeedScroll = false;
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        scoreScrollController.animateTo(
+            scoreScrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 0),
+            curve: Curves.linear);
+      });
+    }
     return Expanded(
       child: ListView.builder(
         physics: isScroll ? null : const NeverScrollableScrollPhysics(),
-        itemCount: provider.rowPropertyList.length,
+        controller: scoreScrollController,
+        itemCount: vm.rowPropertyList.length,
         itemBuilder: (context, index) {
           var rowColor = Colors.white;
-          if (provider.validateRowScoreSum(index) == false) {
+          if (vm.validateInput(index).isNotEmpty) {
             rowColor = Colors.yellow;
           }
 
           return Column(children: [
-            scoreRow(context, height, index, provider, rowColor),
+            scoreRow(context, height, index, vm, rowColor),
             myDivider(screenSize.width, columnDividerHeight),
           ]);
         },
@@ -237,107 +226,77 @@ class ScorePage extends ConsumerWidget {
   }
 
   Widget scoreRow(BuildContext context, double height, int rowIndex,
-      ScoreViewModel provider, Color rowColor) {
+      ScoreViewModel vm, Color rowColor) {
     final screenSize = MediaQuery.of(context).size;
-    final rowProperty = provider.rowPropertyList[rowIndex];
+    final rowProperty = vm.rowPropertyList[rowIndex];
 
+    final errList = vm.validateInput(rowIndex);
     return SizedBox(
       height: height,
       width: screenSize.width,
       child: Row(children: [
-        subjectCell(height, '${(rowIndex + 1).toString()}'),
+        SizedBox(
+          width: subjectCellWidth,
+          height: height,
+          child: Stack(
+            children: [
+              subjectCell(height, '${(rowIndex + 1).toString()}'),
+              Visibility(
+                visible: errList.isNotEmpty,
+                child: Align(
+                  alignment: Alignment.center,
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.warning_outlined,
+                      color: Colors.red,
+                    ),
+                    onPressed: () {
+                      waringAlert(context, errList);
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         Expanded(
           child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: rowProperty.scoreCellList.length,
               itemBuilder: (context, index) {
-                final cellProperty = rowProperty.scoreCellList[index];
-                cellProperty.setFocusOut(() {
-                  if (cellProperty.isChanged() == false) {
-                    return;
-                  }
-                  if (cellProperty.validateInput() == false) {
-                    cellProperty.clearScore();
-                    return;
-                  }
-                  print('setFocusOut $rowIndex $index');
-                });
+                final cell = rowProperty.scoreCellList[index];
+                final score = cell.scoreModel.scoreString != ''
+                    ? cell.scoreModel.score
+                    : null;
 
-                // textに合わせてカーソル位置を末端にしておく
-                rowProperty.setAllCursorToEnd();
-                return Stack(
-                  children: [
-                    SizedBox(
-                      width: (screenSize.width - subjectCellWidth) /
-                          rowProperty.scoreCellList.length,
-                      child: Container(
-                        color: rowColor,
-                        child: Row(
-                          children: [
-                            // Expanded(child: InkWell(
-                            //   onTap: () async {
-                            //     final a = pointKeyboard(context);
-                            //     provider.afterInput(rowIndex, index);
-                            //   },
-                            // )),
-                            Expanded(
-                              child: TextField(
-                                textAlign: TextAlign.center,
-                                controller: cellProperty.controller,
-                                focusNode: cellProperty.focusNode,
-                                textInputAction: TextInputAction.unspecified,
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                        signed: true, decimal: true),
-                                style: TextStyle(
-                                  color: cellProperty.scoreModel.score >= 0
-                                      ? Colors.black
-                                      : Colors.red,
-                                ),
-                                decoration: const InputDecoration(
-                                  border: InputBorder.none,
-                                ),
-                                inputFormatters: <TextInputFormatter>[
-                                  FilteringTextInputFormatter.allow(
-                                      RegExp(r'[-0-9]')),
-                                  FilteringTextInputFormatter
-                                      .singleLineFormatter,
-                                ],
-                                onTap: () async {
-                                  // 入力中に他のTFをタップしたら、後処理を呼ぶ
-                                  // タップされたセルとフォーカス中のセルが同じならスルー
-                                  final cd = provider.getFocusCoordinate();
-                                  if (cd != null) {
-                                    if (cd.isNotEqual(rowIndex, index)) {
-                                      print('onTap $rowIndex, $index');
-                                      provider.afterInput(cd.row, cd.col);
-                                    }
-                                  }
-
-                                  // 吹き出し判定
-                                  provider.setSpeechBubble(rowIndex, index);
-
-                                  keyBoardShowProcess(provider);
-                                },
-                                onEditingComplete: () {
-                                  print('aaa');
-                                },
-                                onSubmitted: (value) {
-                                  print('onSubmitted $rowIndex, $index');
-                                  provider
-                                    ..afterInput(rowIndex, index)
-                                    ..clearSpeechBubbleIfNeed();
-                                  keyBoardHideProcess(provider);
-                                },
-                              ),
-                            ),
-                            myDivider(rowDividerWidth, height),
-                          ],
+                return SizedBox(
+                  width: (screenSize.width - subjectCellWidth) /
+                      rowProperty.scoreCellList.length,
+                  child: Container(
+                    color: rowColor,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: () async {
+                              int suddest;
+                              if (vm.isVisibleSuggest(rowIndex)) {
+                                suddest =
+                                    -rowProperty.getOtherTotalScore(index);
+                              }
+                              final iv = await pointKeyboard(context,
+                                  cell.scoreModel.scoreString, suddest);
+                              if (iv != null) {
+                                vm.afterInput(rowIndex, index, iv);
+                              }
+                            },
+                            child: Center(child: ScoreText(score)),
+                          ),
                         ),
-                      ),
+                        myDivider(rowDividerWidth, height),
+                      ],
                     ),
-                    bubble(provider, rowIndex, index),
-                  ],
+                  ),
                 );
               }),
         ),
@@ -345,37 +304,41 @@ class ScorePage extends ConsumerWidget {
     );
   }
 
-  Widget bubble(ScoreViewModel scoreViewModel, int row, int col) {
-    if (scoreViewModel.speechBubbleProperty.isVisible == false) {
-      return Container();
+  Future<InputValue> pointKeyboard(
+      BuildContext context, String score, int suggest) async {
+    return showDialog<InputValue>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return ScoreKeyBoard(score, suggest);
+      },
+    );
+  }
+
+  Future<int> waringAlert(BuildContext context, List<errType> errList) async {
+    final errText = StringBuffer();
+    for (final e in errList) {
+      errText.write(e.message);
     }
 
-    // 表示対象のセルでない場合は適当なcontainerを返す
-    // フォーカスセル
-    if (scoreViewModel.speechBubbleProperty.coordinate.row != row + 1 ||
-        scoreViewModel.speechBubbleProperty.coordinate.col != col) {
-      return Container();
-    }
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-      child: Container(
-        decoration: const ShapeDecoration(
-          shape: SpeechBubble(),
-          color: Colors.blueGrey,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(0),
-          child: Center(
-            child: TextButton(
-              child: NormalText('${scoreViewModel.speechBubbleProperty.score}'),
+    return showDialog<int>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('エラー詳細'),
+          content: Text(errText.toString()),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('閉じる'),
               onPressed: () {
-                keyBoardHideProcess(scoreViewModel);
-                scoreViewModel.speechBubbleTap();
+                Navigator.of(context).pop();
               },
             ),
-          ),
-        ),
-      ),
+          ],
+        );
+        ;
+      },
     );
   }
 
@@ -397,53 +360,22 @@ class ScorePage extends ConsumerWidget {
     return SizedBox(
         width: width, height: height, child: Container(color: Colors.black));
   }
-
-  Future<int> pointKeyboard(BuildContext context) async {
-    return showDialog<int>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return KeyBoard('');
-      },
-    );
-  }
-
-// キーボード表示するときのあれこれ
-  void keyBoardShowProcess(ScoreViewModel viewModel) {
-    viewModel.setKeyBoardVisible(true);
-  }
-
-// キーボード閉じるするときのあれこれ
-  void keyBoardHideProcess(ScoreViewModel viewModel) {
-    //final coordinate = viewModel.getFocusCoordinate();
-    // if (coordinate != null) {
-    //   viewModel.rowPropertyList[coordinate.row].scoreCellList[coordinate.col]
-    //       .focusNode
-    //       .unfocus();
-    // }
-    //viewModel.setKeyBoardVisible(false);
-  }
-
-// 遷移時にするあれこれ
-  void transitionProcess(BuildContext context, ScoreViewModel scoreViewModel) {
-    FocusScope.of(context).unfocus();
-    scoreViewModel.clearSpeechBubbleIfNeed();
-  }
 }
 
-class KeyBoard extends StatefulWidget {
-  KeyBoard(
-    this.score, {
+class ScoreKeyBoard extends StatefulWidget {
+  ScoreKeyBoard(
+    this.score,
+    this.suggest, {
     Key key = null,
-  }) : super(key: key);
-
+  }) : super(key: key) {}
   String score;
+  int suggest;
 
   @override
-  _KeyBoardState createState() => _KeyBoardState();
+  _ScoreKeyBoardState createState() => _ScoreKeyBoardState();
 }
 
-class _KeyBoardState extends State<KeyBoard> {
+class _ScoreKeyBoardState extends State<ScoreKeyBoard> {
   void addScore(String src) {
     setState(() {
       widget.score += src;
@@ -465,42 +397,14 @@ class _KeyBoardState extends State<KeyBoard> {
       content: SingleChildScrollView(
         child: Column(
           children: <Widget>[
-            HeadingText(widget.score),
+            Align(
+              alignment: Alignment.centerRight,
+              child: HeadingText(widget.score),
+            ),
             const Divider(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            Column(
               children: [
-                for (var i = 9; i >= 7; i--)
-                  ElevatedButton(
-                    onPressed: () {
-                      addScore(i.toString());
-                    },
-                    child: ButtonText(i.toString()),
-                  ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                for (var i = 6; i >= 4; i--)
-                  ElevatedButton(
-                    onPressed: () {
-                      addScore(i.toString());
-                    },
-                    child: ButtonText(i.toString()),
-                  ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                for (var i = 3; i >= 1; i--)
-                  ElevatedButton(
-                    onPressed: () {
-                      addScore(i.toString());
-                    },
-                    child: ButtonText(i.toString()),
-                  ),
+                for (var i = 1; i <= 9; i += keyButtonRowCnt) keyButtonRow(i),
               ],
             ),
             Row(
@@ -532,6 +436,19 @@ class _KeyBoardState extends State<KeyBoard> {
                 ),
               ],
             ),
+            Visibility(
+              visible: widget.suggest != null,
+              child: ElevatedButton(
+                onPressed: () {
+                  final iv = InputValue(widget.suggest);
+                  Navigator.of(context).pop(iv);
+                },
+                child: Text('自動計算(${widget.suggest})'),
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.orangeAccent, //ボタンの背景色
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -539,15 +456,32 @@ class _KeyBoardState extends State<KeyBoard> {
         TextButton(
           child: const Text('キャンセル'),
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(null);
           },
         ),
         TextButton(
           child: const Text('保存'),
           onPressed: () {
-            Navigator.of(context).pop(widget.score);
+            final score = widget.score != '' ? int.parse(widget.score) : null;
+            final iv = InputValue(score);
+            Navigator.of(context).pop(iv);
           },
         ),
+      ],
+    );
+  }
+
+  Widget keyButtonRow(int start) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        for (var i = start; i < start + keyButtonRowCnt; i++)
+          ElevatedButton(
+            onPressed: () {
+              addScore(i.toString());
+            },
+            child: ButtonText(i.toString()),
+          ),
       ],
     );
   }

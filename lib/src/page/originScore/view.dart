@@ -38,6 +38,7 @@ class OriginScorePage extends ConsumerWidget {
   }
 
   int drId;
+  ScrollController scoreScrollController = ScrollController();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -189,7 +190,8 @@ class OriginScorePage extends ConsumerWidget {
   Widget scoreSection(
       BuildContext context, double height, OriginScoreViewModel vm) {
     final screenSize = MediaQuery.of(context).size;
-    final totalHeight = MediaQuery.of(context).padding.top + // safeArea
+    final totalHeight = MediaQuery.of(context).padding.top +
+        MediaQuery.of(context).padding.bottom +
         AppBar().preferredSize.height +
         nameCellHeight +
         columnDividerHeight +
@@ -200,6 +202,17 @@ class OriginScorePage extends ConsumerWidget {
 
     final isScroll = screenSize.height <= totalHeight;
     print('scoreSection $isScroll');
+
+    // スクロールが必要な場合、build後にスクロールする
+    if (vm.isNeedScroll) {
+      vm.isNeedScroll = false;
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        scoreScrollController.animateTo(
+            scoreScrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 0),
+            curve: Curves.linear);
+      });
+    }
     return Expanded(
       child: ListView.builder(
         physics: isScroll ? null : const NeverScrollableScrollPhysics(),

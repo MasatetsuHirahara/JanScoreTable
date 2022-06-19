@@ -35,6 +35,7 @@ class OriginScoreViewModel extends ChangeNotifier {
   List<String> nameList = ['', '', '', ''];
   GameSettingModel gameSettingModel = GameSettingModel()
     ..kind = KindValue.yonma.num;
+  bool isNeedScroll = false;
 
   void listenGameSetting() {
     final gsa = ref.read(gameSettingAccessor);
@@ -98,26 +99,33 @@ class OriginScoreViewModel extends ChangeNotifier {
       }
     });
 
-    incrementGameCountIfNeed();
+    // 行が追加されたらスクロールする
+    if (incrementGameCountIfNeed()) {
+      isNeedScroll = true;
+    }
+
     notifyListeners();
   }
 
-  void incrementGameCountIfNeed([int index]) {
+  // 必要なら行を追加。追加したらtrueを返す
+  bool incrementGameCountIfNeed([int index]) {
     if (index != null) {
       final inputGc = index ~/ joinedCount;
 
       // 末尾のgcの更新でなければ追加を考慮する必要なし
       if (rowPropertyList.length > inputGc + 1) {
-        return;
+        return false;
       }
     }
     // 末尾のスコアを確認して、必要数入力されていなければ追加しない
     if (rowPropertyList.last.isInputComplete(gameSettingModel.kind) == false) {
-      return;
+      return false;
     }
 
     // 追加
     addNewScoreRow(1);
+
+    return true;
   }
 
   void listenGjm() {
@@ -486,6 +494,33 @@ class ScoreRowProperty {
     scoreCellList[col].scoreModel = score;
   }
 
+  List<errType> validateInput(GameSettingModel gameSettingModel) {
+    final ret = <errType>[];
+
+    //　バリデートが必要ない
+    if (!isNeedValidate(gameSettingModel)) {
+      return ret;
+    }
+
+    if (!validateOriginScoreSum(gameSettingModel)) {
+      ret.add(errType.scoreSum);
+    }
+
+    if (isNeedWind) {
+      ret.add(errType.isNeedWind);
+    }
+
+    if (!validateKoCnt()) {
+      ret.add(errType.koCnt);
+    }
+
+    if (!validateInputCnt(gameSettingModel)) {
+      ret.add(errType.inputCnt);
+    }
+
+    return ret;
+  }
+
   bool isNeedValidate(GameSettingModel gameSettingModel) {
     var cnt = 0;
     for (final c in scoreCellList) {
@@ -534,33 +569,6 @@ class ScoreRowProperty {
     }
 
     return true;
-  }
-
-  List<errType> validateInput(GameSettingModel gameSettingModel) {
-    final ret = <errType>[];
-
-    //　バリデートが必要ない
-    if (!isNeedValidate(gameSettingModel)) {
-      return ret;
-    }
-
-    if (!validateOriginScoreSum(gameSettingModel)) {
-      ret.add(errType.scoreSum);
-    }
-
-    if (isNeedWind) {
-      ret.add(errType.isNeedWind);
-    }
-
-    if (!validateKoCnt()) {
-      ret.add(errType.koCnt);
-    }
-
-    if (!validateInputCnt(gameSettingModel)) {
-      ret.add(errType.inputCnt);
-    }
-
-    return ret;
   }
 }
 

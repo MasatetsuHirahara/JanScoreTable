@@ -2,7 +2,6 @@ import 'dart:core';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_app/src/accessor/table/gameJoinMemberAccesor.dart';
 import 'package:flutter_app/src/accessor/table/gameSettingAccessor.dart';
 import 'package:flutter_app/src/accessor/table/scoreAccessor.dart';
@@ -33,10 +32,10 @@ class ScoreViewModel extends ChangeNotifier {
   List<int> totalPointList = [];
   int joinedCount = defaultJoinedCount;
   List<String> nameList = ['', '', '', ''];
-  SpeechBubbleProperty speechBubbleProperty = SpeechBubbleProperty();
   GameSettingModel gameSettingModel = GameSettingModel()
     ..kind = KindValue.yonma.num;
   bool keyBoardVisible = false;
+  bool isNeedScroll = false;
 
   void listenGameSetting() {
     final gsa = ref.read(gameSettingAccessor);
@@ -100,31 +99,33 @@ class ScoreViewModel extends ChangeNotifier {
       }
     });
 
-    // 吹き出しを表示している場合は表示内容をリセット
-    if (speechBubbleProperty.isVisible) {
-      setSpeechBubble(speechBubbleProperty.coordinate.row,
-          speechBubbleProperty.coordinate.col);
+    // 行が追加されたらスクロールする
+    if (incrementGameCountIfNeed()) {
+      isNeedScroll = true;
     }
-    incrementGameCountIfNeed();
+
     notifyListeners();
   }
 
-  void incrementGameCountIfNeed([int index]) {
+  // 必要ならgameCntを追加。追加したらtrueを返す
+  bool incrementGameCountIfNeed([int index]) {
     if (index != null) {
       final inputGc = index ~/ joinedCount;
 
       // 末尾のgcの更新でなければ追加を考慮する必要なし
       if (rowPropertyList.length > inputGc + 1) {
-        return;
+        return false;
       }
     }
     // 末尾のスコアを確認して、必要数入力されていなければ追加しない
     if (rowPropertyList.last.isInputComplete(gameSettingModel.kind) == false) {
-      return;
+      return false;
     }
 
     // 追加
     addNewScoreRow(1);
+
+    return true;
   }
 
   void listenGjm() {
@@ -208,59 +209,21 @@ class ScoreViewModel extends ChangeNotifier {
     }
   }
 
-  Coordinate getFocusCoordinate() {
-    for (var row = rowPropertyList.length - 1; row >= 0; row--) {
-      final col = rowPropertyList[row].getFocusCol();
-      if (col >= 0) {
-        return Coordinate(row, col);
-      }
-    }
-
-    return null;
-  }
-
-  void setSpeechBubble(int row, int col) {
-    final rowProperty = rowPropertyList[row];
-    if (rowProperty.isNotNeedSpeechBubble(col, gameSettingModel.kind)) {
-      clearSpeechBubbleIfNeed();
-      notifyListeners();
-      return;
-    }
-
-    final currentTotal = rowProperty.sumScore() - rowProperty.getScore(col);
-    final suggestPoint = -currentTotal;
-
-    speechBubbleProperty.setProperty(suggestPoint, row, col);
-    notifyListeners();
-  }
-
-  void clearSpeechBubbleIfNeed() {
-    if (speechBubbleProperty.isVisible) {
-      speechBubbleProperty.clear();
-      notifyListeners();
-    }
-  }
-
-  void speechBubbleTap() {
-    rowPropertyList[speechBubbleProperty.coordinate.row].setScore(
-        speechBubbleProperty.coordinate.col, speechBubbleProperty.score);
-    afterInput(speechBubbleProperty.coordinate.row,
-        speechBubbleProperty.coordinate.col);
-    clearSpeechBubbleIfNeed();
-  }
-
-  void afterInput(int row, int col) {
+  void afterInput(int row, int col, InputValue inputValue) {
     print('afterInput $row , $col');
 
-    // バリデートエラーならクリアして終わり
     final rowProperty = rowPropertyList[row];
-    if (rowProperty.validateInputScore(col) == false) {
-      rowProperty.clearScore(col);
-      return;
-    }
 
-    // 順位を設定
-    rowProperty.setRank();
+    // スコアをセット
+    rowProperty.setScore(col, inputValue.score);
+
+    // 入力が完了していれば、ランクを計算
+    if (rowProperty.isInputComplete(gameSettingModel.kind)) {
+      rowProperty.setRank();
+    } else {
+      //完了していない場合はクリアする
+      rowProperty.clearAllRank();
+    }
 
     final accessor = ref.read(scoreAccessor);
     for (var i = 0; i < rowProperty.scoreCellList.length; i++) {
@@ -274,71 +237,23 @@ class ScoreViewModel extends ChangeNotifier {
         continue;
       }
 
-      // inputされたcell
-      final inputScore = sc.controller.text == ''
-          ? null
-          : scoreCastInt(rowProperty.getScoreText(col));
-      final newSm = ScoreModel(
-          id: sc.scoreModel.id,
-          drId: drId,
-          gameCount: row,
-          number: col,
-          score: inputScore,
-          rank: sc.scoreModel.rank);
+      // vmで保存しているmodelをベースにdrIdとgcを補完
+      // インスタンス生成時に、セットしていないため。
+      final newSm = ScoreModel.fromMap(sc.scoreModel.toMap())
+        ..drId = drId
+        ..gameCount = row;
       accessor.upsert(newSm);
     }
   }
 
-  bool validateRowScoreSum(int row) {
-    // 最後のゲームでゲーム人数以上入力されていない場合はvalidate対象外
-    if (row == rowPropertyList.length - 1) {
-      var cnt = 0;
-      for (final p in rowPropertyList[row].scoreCellList) {
-        if (p.controller.text != '') {
-          cnt++;
-        }
-      }
-
-      if (cnt < joinedCount) {
-        return true;
-      }
-    }
-
-    return rowPropertyList[row].validateScoreSum(gameSettingModel.kind);
+  bool isVisibleSuggest(int row) {
+    // 入力完了数 - 1　が入力されていれば可能
+    return rowPropertyList[row].isInputComplete(gameSettingModel.kind - 1);
   }
 
-  void setKeyBoardVisible(bool src) {
-    if (keyBoardVisible == src) {
-      return;
-    }
-    keyBoardVisible = src;
-    notifyListeners();
-  }
-}
-
-class Coordinate {
-  Coordinate(this.row, this.col);
-  int row;
-  int col;
-
-  bool isNotEqual(int row, int col) {
-    return this.row != row || this.col != col;
-  }
-}
-
-class SpeechBubbleProperty {
-  int score = 0;
-  Coordinate coordinate = Coordinate(0, 0);
-  bool isVisible = false;
-  void clear() {
-    isVisible = false;
-    score = 0;
-  }
-
-  void setProperty(int score, int row, int col) {
-    this.score = score;
-    coordinate = Coordinate(row, col);
-    isVisible = true;
+  List<errType> validateInput(int row) {
+    final p = rowPropertyList[row];
+    return p.validateInput(gameSettingModel);
   }
 }
 
@@ -366,7 +281,7 @@ class ScoreRowProperty {
   bool isInputComplete(int completeNum) {
     var inputCnt = 0;
     for (final s in scoreCellList) {
-      if (s.controller.text != '') {
+      if (s.scoreModel.scoreString != '') {
         inputCnt++;
         if (inputCnt >= completeNum) {
           return true;
@@ -376,13 +291,25 @@ class ScoreRowProperty {
     return false;
   }
 
+  /// 引数のcol以外の合算
+  int getOtherTotalScore(int col) {
+    var ret = 0;
+
+    for (var i = 0; i < scoreCellList.length; i++) {
+      if (i == col) {
+        continue;
+      }
+      ret += scoreCellList[i].scoreModel.score;
+    }
+
+    return ret;
+  }
+
   //　順位を設定
   void setRank() {
     // スコアでソート済みのリストを作る
-    // 現在の入力値を参照するためcontrolloerで比較
     final sortList = List.of(scoreCellList)
-      ..sort((a, b) => scoreCastInt(b.controller.text)
-          .compareTo(scoreCastInt(a.controller.text)));
+      ..sort((a, b) => b.scoreModel.score.compareTo(a.scoreModel.score));
 
     // ソート済みリストから保持するlistのランクを更新
     var rank = 1;
@@ -391,7 +318,7 @@ class ScoreRowProperty {
       if (s.scoreModel.number == null) {
         continue;
       }
-      if (scoreCellList[s.scoreModel.number].controller.text == '') {
+      if (scoreCellList[s.scoreModel.number].scoreModel.scoreString == '') {
         scoreCellList[s.scoreModel.number].scoreModel.rank = null;
         continue;
       }
@@ -401,87 +328,67 @@ class ScoreRowProperty {
     }
   }
 
-  ScoreModel getScoreModel(int col) {
-    return scoreCellList[col].scoreModel;
-  }
-
-  String getScoreText(int col) {
-    return scoreCellList[col].controller.text;
-  }
-
-  int getScore(int col) {
-    return scoreCellList[col].scoreModel.score;
-  }
-
   void setScore(int col, int score) {
-    scoreCellList[col].controller.text = score.toString();
     scoreCellList[col].scoreModel.score = score;
+    scoreCellList[col].scoreModel.number = col;
   }
 
   void setScoreModel(int col, ScoreModel score) {
-    scoreCellList[col].controller.text = score.scoreString;
     scoreCellList[col].scoreModel = score;
   }
 
-  void setAllCursorToEnd() {
-    for (final c in scoreCellList) {
-      c.setCursorToEnd();
-    }
-  }
-
-  int getFocusCol() {
-    for (var i = 0; i < scoreCellList.length; i++) {
-      if (scoreCellList[i].focusNode.hasFocus) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  bool validateInputScore(int col) {
-    return scoreCellList[col].validateInput();
-  }
-
-  void clearScore(int col) {
-    scoreCellList[col].clearScore();
-  }
-
-  bool isNotNeedSpeechBubble(int notIncludeCol, int kindValue) {
-    // ゲーム人数-1　入力されていれば補完できる
-    // タップされたセルはカウントしない
-    var cnt = 0;
-    for (var i = 0; i < scoreCellList.length; i++) {
-      if (i == notIncludeCol) {
-        continue;
-      }
-      if (scoreCellList[i].controller.text != '') {
-        cnt++;
-        if (cnt >= kindValue - 1) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
-  int sumScore() {
-    var ret = 0;
+  void clearAllRank() {
     for (final s in scoreCellList) {
-      ret += s.scoreModel.score;
+      s.scoreModel.rank = null;
     }
+  }
+
+  List<errType> validateInput(GameSettingModel gameSettingModel) {
+    final ret = <errType>[];
+
+    //　バリデートが必要ない
+    if (!isNeedValidate(gameSettingModel)) {
+      return ret;
+    }
+
+    if (!validateScoreSum(gameSettingModel)) {
+      ret.add(errType.scoreSum);
+    }
+
+    if (!validateInputCnt(gameSettingModel)) {
+      ret.add(errType.inputCnt);
+    }
+
     return ret;
   }
 
-  bool validateScoreSum(int kind) {
-    var total = 0;
+  bool isNeedValidate(GameSettingModel gameSettingModel) {
     var cnt = 0;
     for (final c in scoreCellList) {
-      total += c.scoreModel.score;
-      if (c.controller.text != '') {
-        cnt++;
+      if (c.scoreModel.scoreString == '') {
+        continue;
       }
+      cnt++;
     }
 
+    // 入力が満たない場合は対象外
+    if (cnt < gameSettingModel.kind) {
+      return false;
+    }
+
+    return true;
+  }
+
+  bool validateScoreSum(GameSettingModel gameSettingModel) {
+    var total = 0;
+    for (final c in scoreCellList) {
+      if (c.scoreModel.scoreString == '') {
+        continue;
+      }
+      total += c.scoreModel.score;
+    }
+
+    // 0でなければエラー
     if (total != 0) {
       return false;
     }
@@ -489,53 +396,47 @@ class ScoreRowProperty {
     return true;
   }
 
-  void setRowColor(Color color) {
-    this.color = color;
+  bool validateInputCnt(GameSettingModel gameSettingModel) {
+    var cnt = 0;
+    for (final c in scoreCellList) {
+      if (c.scoreModel.scoreString == '') {
+        continue;
+      }
+      cnt++;
+    }
+
+    if (cnt > gameSettingModel.kind) {
+      return false;
+    }
+
+    return true;
   }
 }
 
 // スコア1セル分のproperty
 class ScoreCellProperty {
-  ScoreCellProperty() {
-    controller.addListener(() {});
-  }
   ScoreModel scoreModel = ScoreModel();
-
-  TextEditingController controller = TextEditingController();
-  FocusNode focusNode = FocusNode();
-
-  VoidCallback focusOut;
-
-  void setFocusOut(VoidCallback f) {
-    controller.removeListener(focusOut);
-    focusOut = f;
-    controller.addListener(focusOut);
-  }
-
-  void setCursorToEnd() {
-    controller.selection = TextSelection.fromPosition(
-        TextPosition(offset: controller.text.length));
-  }
-
-  bool isChanged() {
-    if (focusNode.hasFocus) {
-      return false;
-    }
-    return scoreModel.score != scoreCastInt(controller.text);
-  }
-
-  bool validateInput() {
-    // １文字単位の制限しかできなかったのでここでバリデート
-    // マイナスが先頭以外にあったらエラー(数字に後ろにあったら)
-    return !new RegExp(r'[0-9]-').hasMatch(controller.text);
-  }
 
   bool clearScore() {
     scoreModel.score = 0;
-    controller.text = '';
   }
 }
 
 int scoreCastInt(String src) {
   return src != '' ? int.parse(src) : 0;
+}
+
+class InputValue {
+  InputValue(this.score);
+  int score;
+}
+
+enum errType { scoreSum, isNeedWind, koCnt, inputCnt }
+
+extension errTypeExtension on errType {
+  static final messages = {
+    errType.scoreSum: 'スコアの合計が違います\n',
+    errType.inputCnt: '不参加者は空にしてください\n',
+  };
+  String get message => messages[this];
 }
