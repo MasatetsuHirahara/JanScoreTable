@@ -1,6 +1,25 @@
 import '../common/const.dart';
 import 'baseModel.dart';
 
+enum koKind { no, yes }
+
+extension koKindExtension on koKind {
+  static final numbers = {
+    koKind.no: 0,
+    koKind.yes: 1,
+  };
+  int get num => numbers[this];
+
+  static koKind fromInt(int target) {
+    for (final v in koKind.values) {
+      if (target == v.num) {
+        return v;
+      }
+    }
+    return koKind.no;
+  }
+}
+
 enum WindType { east, south, west, north, none }
 
 extension WindeTypeExtension on WindType {
@@ -12,6 +31,15 @@ extension WindeTypeExtension on WindType {
     WindType.none: 0,
   };
   int get num => numbers[this];
+
+  static final texts = {
+    WindType.east: '東',
+    WindType.south: '南',
+    WindType.west: '西',
+    WindType.north: '北',
+    WindType.none: '',
+  };
+  String get text => texts[this];
   static WindType fromInt(int target) {
     for (final v in WindType.values) {
       if (target == v.num) {
@@ -23,6 +51,8 @@ extension WindeTypeExtension on WindType {
 
   // 東南西北の順に優先
   int compareTo(WindType to) {
+    print('$this');
+    print('$to');
     if (num > to.num) {
       return 1;
     }
@@ -35,7 +65,14 @@ extension WindeTypeExtension on WindType {
 
 class ScoreModel extends BaseModel {
   ScoreModel(
-      {int id, this.drId, this.gameCount, this.number, int score, this.rank}) {
+      {int id,
+      this.drId,
+      this.gameCount,
+      this.number,
+      int score,
+      this.rank,
+      this.ko = koKind.no,
+      this.wind = WindType.none}) {
     this.id = id;
     _score = score;
   }
@@ -51,7 +88,9 @@ class ScoreModel extends BaseModel {
     rank = map.containsKey(columnRank) ? map[columnRank] as int : 0;
     rankRemark =
         map.containsKey(columnRankRemark) ? map[columnRankRemark] as int : 0;
-    ko = map.containsKey(columnKo) ? map[columnKo] as int : 0;
+    ko = map.containsKey(columnKo)
+        ? koKindExtension.fromInt(map[columnKo] as int)
+        : koKind.no;
     fireBird = map.containsKey(columnFireBird) ? map[columnFireBird] as int : 0;
     wind = map.containsKey(columnWind)
         ? WindeTypeExtension.fromInt(map[columnWind] as int)
@@ -65,7 +104,7 @@ class ScoreModel extends BaseModel {
   int _originScore;
   int rank;
   int rankRemark;
-  int ko;
+  koKind ko;
   int fireBird;
   WindType wind;
 
@@ -88,7 +127,7 @@ class ScoreModel extends BaseModel {
       columnOriginScore: _originScore,
       columnRank: rank,
       columnRankRemark: rankRemark,
-      columnKo: ko,
+      columnKo: ko.num,
       columnFireBird: fireBird,
       columnWind: wind.num,
     };

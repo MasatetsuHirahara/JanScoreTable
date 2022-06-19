@@ -202,9 +202,9 @@ class OriginScoreViewModel extends ChangeNotifier {
   }
 
   /// 入力後の処理
-  void afterInput(int row, int col, int originScore) {
+  void afterInput(int row, int col, InputValue inputValue) {
     // 入力内容を保存
-    final rowProperty = rowPropertyList[row]..setOriginScore(col, originScore);
+    final rowProperty = rowPropertyList[row]..setInputValue(col, inputValue);
 
     // 入力が完了していれば、ランクとスコアを計算、設定のバリデーションを行う
     if (rowProperty.isInputComplete(gameSettingModel.kind)) {
@@ -228,52 +228,26 @@ class OriginScoreViewModel extends ChangeNotifier {
         continue;
       }
 
-      // vmで保存しているmodelをベースにdrIdとgc,numberを補完
+      // vmで保存しているmodelをベースにdrIdとgcを補完
       // インスタンス生成時に、セットしていないため。
       final newS = ScoreModel.fromMap(sc.scoreModel.toMap())
         ..drId = drId
-        ..gameCount = row
-        ..number = col;
+        ..gameCount = row;
       accessor.upsert(newS);
     }
   }
-
-  // bool validateRowScore(int row) {
-  //   if (!validateRowScoreSum(row)) {
-  //     return false;
-  //   }
-  //
-  //   if (!rowPropertyList[row].validateKoCnt()) {
-  //     return false;
-  //   }
-  // }
-
-  // bool validateRowScoreSum(int row) {
-  //   // 最後のゲームでなければ対象外
-  //   if (row != rowPropertyList.length - 1) {
-  //     return true;
-  //     var cnt = 0;
-  //     for (final p in rowPropertyList[row].scoreCellList) {
-  //       if (p.scoreModel.originScoreString == '') {
-  //         cnt++;
-  //       }
-  //     }
-  //
-  //     if (cnt < joinedCount) {
-  //       return true;
-  //     }
-  //   }
-  //
-  //   return rowPropertyList[row].validateScoreSum(gameSettingModel.kind);
-  // }
 
   bool isInputComplete(int row) {
     return rowPropertyList[row].isInputComplete(gameSettingModel.kind);
   }
 
-  bool canVisibleSuggest(int row) {
+  bool isVisibleSuggest(int row) {
     // 入力完了数 - 1　が入力されていれば可能
     return rowPropertyList[row].isInputComplete(gameSettingModel.kind - 1);
+  }
+
+  bool isVisibleWind() {
+    return gameSettingModel.samePointType == SamePointType.kamicha;
   }
 
   int getSuggestScore(int row, int col) {
@@ -282,7 +256,7 @@ class OriginScoreViewModel extends ChangeNotifier {
     return (gameSettingModel.originPoint * gameSettingModel.kind) - total;
   }
 
-  ValidateErr validateInput(int row) {
+  List<errType> validateInput(int row) {
     final p = rowPropertyList[row];
     return p.validateInput(gameSettingModel);
   }
@@ -346,7 +320,7 @@ class ScoreRowProperty {
 
     // ソート済みリストから保持するlistのランクを更新
     var rank = 0;
-    var isNeedWind = false;
+    var isSame = false;
     int lastScore;
     var rankStock = 0;
     for (var i = 0; i < sortList.length; i++) {
@@ -379,20 +353,20 @@ class ScoreRowProperty {
         rank++;
         rank += rankStock;
         rankStock = 0;
-        lastScore = s.scoreModel.originScore;
-
         // 同じ点数で風がセットされていない場合は警告を出す
         if (lastScore == s.scoreModel.originScore) {
           if (s.scoreModel.wind == WindType.none) {
-            isNeedWind = true;
+            isSame = true;
           }
         }
+
+        lastScore = s.scoreModel.originScore;
       }
 
       scoreCellList[s.scoreModel.number].scoreModel.rank = rank;
     }
 
-    isNeedWind = isNeedWind;
+    isNeedWind = isSame;
   }
 
   void calculateScore(GameSettingModel gameSettingModel) {
@@ -434,7 +408,7 @@ class ScoreRowProperty {
       if (s.scoreModel.originScore < 0) {
         point -= gameSettingModel.koPoint;
       }
-      if (s.scoreModel.ko == 1) {
+      if (s.scoreModel.ko == koKind.yes) {
         // TODO 3人同時の考慮
         // 同時飛ばしもあり得る
         point += (gameSettingModel.koPoint * getWasKoCnt()) ~/ getKoCnt();
@@ -469,7 +443,7 @@ class ScoreRowProperty {
   int getKoCnt() {
     var ret = 0;
     for (final s in scoreCellList) {
-      if (s.scoreModel.ko == 1) {
+      if (s.scoreModel.ko == koKind.yes) {
         ret++;
       }
     }
@@ -498,10 +472,11 @@ class ScoreRowProperty {
   // void setScore(int col, int score) {
   //   scoreCellList[col].scoreModel.score = score;
   // }
-
-  void setOriginScore(int col, int originScore) {
+  void setInputValue(int col, InputValue inputValue) {
     scoreCellList[col].scoreModel
-      ..originScore = originScore
+      ..originScore = inputValue.originScore
+      ..ko = inputValue.ko
+      ..wind = inputValue.wind
       ..number = col;
   }
 
@@ -541,18 +516,43 @@ class ScoreRowProperty {
     return true;
   }
 
-  ValidateErr validateInput(GameSettingModel gameSettingModel) {
-    final ret = ValidateErr();
+  bool validateInputCnt(GameSettingModel gameSettingModel) {
+    var cnt = 0;
+    for (final c in scoreCellList) {
+      if (c.scoreModel.originScoreString == '') {
+        continue;
+      }
+      cnt++;
+    }
+
+    // 入力が満たない場合は対象外
+    if (cnt < gameSettingModel.kind) {
+      return true;
+    }
+
+    if (cnt > gameSettingModel.kind) {
+      return false;
+    }
+
+    return true;
+  }
+
+  List<errType> validateInput(GameSettingModel gameSettingModel) {
+    final ret = <errType>[];
+    if (!validateOriginScoreSum(gameSettingModel)) {
+      ret.add(errType.scoreSum);
+    }
+
     if (isNeedWind) {
-      ret.isNeedWind = true;
+      ret.add(errType.isNeedWind);
     }
 
     if (!validateKoCnt()) {
-      ret.errKoCnt = true;
+      ret.add(errType.koCnt);
     }
 
-    if (!validateOriginScoreSum(gameSettingModel)) {
-      ret.errScoreSum = true;
+    if (!validateInputCnt(gameSettingModel)) {
+      ret.add(errType.inputCnt);
     }
 
     return ret;
@@ -573,18 +573,23 @@ class ScoreCellProperty {
   }
 }
 
-class ValidateErr {
-  bool isNeedWind = false;
-  bool errScoreSum = false;
-  bool errKoCnt = false;
+class InputValue {
+  InputValue(this.originScore, this.ko, this.wind);
+  int originScore;
+  koKind ko;
+  WindType wind;
+}
 
-  bool hasErr() {
-    return isNeedWind || errScoreSum || errKoCnt;
-  }
+enum errType { scoreSum, isNeedWind, koCnt, inputCnt }
 
-  bool noErr() {
-    return !hasErr();
-  }
+extension errTypeExtension on errType {
+  static final messages = {
+    errType.scoreSum: 'スコアの合計が違います\n',
+    errType.isNeedWind: '同点者に場所を設定をしてください\n',
+    errType.koCnt: '飛びの設定をしてください\n',
+    errType.inputCnt: '不参加者は空にしてください\n',
+  };
+  String get message => messages[this];
 }
 
 int scoreCastInt(String src) {

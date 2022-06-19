@@ -8,16 +8,18 @@ import 'package:flutter_app/src/page/originScore/viewModel.dart';
 import 'package:flutter_app/src/widget/text.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../model/scoreModel.dart';
 import '../chipScore/view.dart';
 import '../scoreChart/view.dart';
 
 const subjectCellWidth = 30.0;
 const nameCellHeight = 70.0;
 const totalCellHeight = 70.0;
-const scoreCellHeight = 70.0;
+const scoreCellHeight = 75.0;
 const columnDividerHeight = 1.0;
 const columnBoldDividerHeight = 2.0;
 const rowDividerWidth = 1.0;
+const keyButtonRowCnt = 3;
 
 final _viewModel = ChangeNotifierProvider.autoDispose
     .family<OriginScoreViewModel, int>((ref, drId) {
@@ -52,7 +54,6 @@ class OriginScorePage extends ConsumerWidget {
         actions: [
           IconButton(
             onPressed: () {
-              transitionProcess(context, vm);
               Navigator.of(context)
                   .push<dynamic>(AdjustmentPage.route(drId: drId));
             },
@@ -60,7 +61,6 @@ class OriginScorePage extends ConsumerWidget {
           ),
           IconButton(
             onPressed: () {
-              transitionProcess(context, vm);
               Navigator.of(context)
                   .push<dynamic>(ChipScorePage.route(drId: drId));
             },
@@ -68,7 +68,6 @@ class OriginScorePage extends ConsumerWidget {
           ),
           IconButton(
             onPressed: () {
-              transitionProcess(context, vm);
               Navigator.of(context)
                   .push<dynamic>(ScoreChartPage.route(drId: drId));
             },
@@ -76,7 +75,6 @@ class OriginScorePage extends ConsumerWidget {
           ),
           IconButton(
               onPressed: () {
-                transitionProcess(context, vm);
                 Navigator.of(context)
                     .push<dynamic>(GameSettingPage.route(drId: drId));
               },
@@ -215,8 +213,8 @@ class OriginScorePage extends ConsumerWidget {
         itemCount: vm.rowPropertyList.length,
         itemBuilder: (context, index) {
           var rowColor = Colors.white;
-          final err = vm.validateInput(index);
-          if (err.hasErr()) {
+          final errList = vm.validateInput(index);
+          if (errList.isNotEmpty) {
             rowColor = Colors.yellow;
           }
 
@@ -229,16 +227,10 @@ class OriginScorePage extends ConsumerWidget {
     );
   }
 
-  Future<int> waringAlert(BuildContext context, ValidateErr err) async {
-    var errText = '';
-    if (err.errScoreSum) {
-      errText += 'スコアの合計が違います\n';
-    }
-    if (err.isNeedWind) {
-      errText += '風の設定をしてください\n';
-    }
-    if (err.errKoCnt) {
-      errText += '飛びの設定をしてください\n';
+  Future<int> waringAlert(BuildContext context, List<errType> errList) async {
+    final errText = StringBuffer();
+    for (final e in errList) {
+      errText.write(e.message);
     }
 
     return showDialog<int>(
@@ -247,7 +239,7 @@ class OriginScorePage extends ConsumerWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('エラー詳細'),
-          content: Text(errText),
+          content: Text(errText.toString()),
           actions: <Widget>[
             TextButton(
               child: const Text('閉じる'),
@@ -267,7 +259,7 @@ class OriginScorePage extends ConsumerWidget {
     final screenSize = MediaQuery.of(context).size;
     final rowProperty = vm.rowPropertyList[rowIndex];
 
-    final validateErr = vm.validateInput(rowIndex);
+    final errList = vm.validateInput(rowIndex);
     return SizedBox(
       height: height,
       width: screenSize.width,
@@ -279,7 +271,7 @@ class OriginScorePage extends ConsumerWidget {
             children: [
               subjectCell(height, '${(rowIndex + 1).toString()}'),
               Visibility(
-                visible: validateErr.hasErr(),
+                visible: errList.isNotEmpty,
                 child: Align(
                   alignment: Alignment.center,
                   child: IconButton(
@@ -288,7 +280,7 @@ class OriginScorePage extends ConsumerWidget {
                       color: Colors.red,
                     ),
                     onPressed: () {
-                      waringAlert(context, validateErr);
+                      waringAlert(context, errList);
                     },
                   ),
                 ),
@@ -302,9 +294,6 @@ class OriginScorePage extends ConsumerWidget {
               itemCount: rowProperty.scoreCellList.length,
               itemBuilder: (context, index) {
                 final cell = rowProperty.scoreCellList[index];
-                final os = cell.scoreModel.originScoreString != ''
-                    ? cell.scoreModel.originScore * 100
-                    : null;
                 return SizedBox(
                   width: (screenSize.width - subjectCellWidth) /
                       rowProperty.scoreCellList.length,
@@ -313,18 +302,7 @@ class OriginScorePage extends ConsumerWidget {
                     child: Column(
                       children: [
                         Expanded(
-                          child: InkWell(
-                            onTap: () async {
-                              int suggest;
-                              if (vm.canVisibleSuggest(rowIndex)) {
-                                suggest = vm.getSuggestScore(rowIndex, index);
-                              }
-                              final originScore = await pointKeyboard(context,
-                                  cell.scoreModel.originScoreString, suggest);
-                              vm.afterInput(rowIndex, index, originScore);
-                            },
-                            child: Center(child: ScoreText(os, fontSize: 20)),
-                          ),
+                          child: originScoreCell(context, vm, rowIndex, index),
                         ),
                         Divider(),
                         ScoreText(cell.scoreModel.score, fontSize: 16),
@@ -335,6 +313,60 @@ class OriginScorePage extends ConsumerWidget {
               }),
         ),
       ]),
+    );
+  }
+
+  Widget originScoreCell(BuildContext context, OriginScoreViewModel vm,
+      int rowIndex, int columnIndex) {
+    final rowProperty = vm.rowPropertyList[rowIndex];
+    final cell = rowProperty.scoreCellList[columnIndex];
+    final os = cell.scoreModel.originScoreString != ''
+        ? cell.scoreModel.originScore * 100
+        : null;
+    var rightCaption = '';
+    if (cell.scoreModel.ko == koKind.yes) {
+      rightCaption += '飛 ';
+    }
+    var leftCaption = '';
+    if (cell.scoreModel.wind != null && cell.scoreModel.wind != WindType.none) {
+      leftCaption += cell.scoreModel.wind.text;
+    }
+    return InkWell(
+      onTap: () async {
+        int suggest;
+        if (vm.isVisibleSuggest(rowIndex)) {
+          suggest = vm.getSuggestScore(rowIndex, columnIndex);
+        }
+        final inputValue = await pointKeyboard(
+            context, cell.scoreModel, suggest, vm.isVisibleWind());
+        if (inputValue != null) {
+          vm.afterInput(rowIndex, columnIndex, inputValue);
+        }
+      },
+      child: Stack(
+        children: [
+          Center(
+            child: ScoreText(
+              os,
+              fontSize: 20,
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: CaptionText(
+              rightCaption,
+              color: Colors.blue,
+            ),
+          ),
+          Align(
+            alignment: Alignment.topLeft,
+            child: CaptionText(
+              leftCaption,
+              color: Colors.blue,
+            ),
+          )
+        ],
+      ),
     );
   }
 
@@ -387,53 +419,34 @@ class OriginScorePage extends ConsumerWidget {
         width: width, height: height, child: Container(color: Colors.black));
   }
 
-  Future<int> pointKeyboard(
-      BuildContext context, String defaultStr, int suggest) async {
-    return showDialog<int>(
+  Future<InputValue> pointKeyboard(BuildContext context, ScoreModel scoreModel,
+      int suggest, bool isNeedWind) async {
+    return showDialog<InputValue>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
-        return KeyBoard(defaultStr, suggest);
+        return KeyBoard(scoreModel, suggest, isNeedWind);
       },
     );
-  }
-
-// キーボード表示するときのあれこれ
-  void keyBoardShowProcess(OriginScoreViewModel viewModel) {
-    // viewModel.setKeyBoardVisible(true);
-  }
-
-// キーボード閉じるするときのあれこれ
-  void keyBoardHideProcess(OriginScoreViewModel viewModel) {
-    //final coordinate = viewModel.getFocusCoordinate();
-    // if (coordinate != null) {
-    //   viewModel.rowPropertyList[coordinate.row].scoreCellList[coordinate.col]
-    //       .focusNode
-    //       .unfocus();
-    // }
-    //viewModel.setKeyBoardVisible(false);
-  }
-
-// 遷移時にするあれこれ
-  void transitionProcess(
-      BuildContext context, OriginScoreViewModel scoreViewModel) {
-    FocusScope.of(context).unfocus();
-    // scoreViewModel.clearSpeechBubbleIfNeed();
   }
 }
 
 class KeyBoard extends StatefulWidget {
   KeyBoard(
-    this.score,
-    this.suggest, {
+    ScoreModel scoreModel,
+    this.suggest,
+    this.isNeedWind, {
     Key key = null,
   }) : super(key: key) {
-    defaultScore = score;
+    score = scoreModel.originScoreString;
+    ko = scoreModel.ko != null ? scoreModel.ko : koKind.no;
+    wind = scoreModel.wind != null ? scoreModel.wind : WindType.none;
   }
-
   String score;
-  String defaultScore;
   int suggest;
+  koKind ko;
+  bool isNeedWind;
+  WindType wind = WindType.none;
 
   @override
   _KeyBoardState createState() => _KeyBoardState();
@@ -446,12 +459,30 @@ class _KeyBoardState extends State<KeyBoard> {
     });
   }
 
+  void setScore(String src) {
+    setState(() {
+      widget.score = src;
+    });
+  }
+
   void backSpace() {
     if (widget.score == '') {
       return;
     }
     setState(() {
       widget.score = widget.score.substring(0, widget.score.length - 1);
+    });
+  }
+
+  void setKo(koKind src) {
+    setState(() {
+      widget.ko = src;
+    });
+  }
+
+  void setWind(WindType src) {
+    setState(() {
+      widget.wind = src;
     });
   }
 
@@ -476,40 +507,9 @@ class _KeyBoardState extends State<KeyBoard> {
               ],
             ),
             const Divider(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            Column(
               children: [
-                for (var i = 9; i >= 7; i--)
-                  ElevatedButton(
-                    onPressed: () {
-                      addScore(i.toString());
-                    },
-                    child: ButtonText(i.toString()),
-                  ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                for (var i = 6; i >= 4; i--)
-                  ElevatedButton(
-                    onPressed: () {
-                      addScore(i.toString());
-                    },
-                    child: ButtonText(i.toString()),
-                  ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                for (var i = 3; i >= 1; i--)
-                  ElevatedButton(
-                    onPressed: () {
-                      addScore(i.toString());
-                    },
-                    child: ButtonText(i.toString()),
-                  ),
+                for (var i = 1; i <= 9; i += keyButtonRowCnt) keyButtonRow(i),
               ],
             ),
             Row(
@@ -545,13 +545,20 @@ class _KeyBoardState extends State<KeyBoard> {
               visible: widget.suggest != null,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pop(widget.suggest);
+                  setScore(widget.suggest.toString());
                 },
                 child: Text('自動計算(${widget.suggest})'),
                 style: ElevatedButton.styleFrom(
                   primary: Colors.orangeAccent, //ボタンの背景色
                 ),
               ),
+            ),
+            ExpansionTile(
+              title: const NormalText('詳細'),
+              children: [
+                koKindRow(),
+                Visibility(visible: widget.isNeedWind, child: windRow()),
+              ],
             ),
           ],
         ),
@@ -560,18 +567,119 @@ class _KeyBoardState extends State<KeyBoard> {
         TextButton(
           child: const Text('キャンセル'),
           onPressed: () {
-            final ret = widget.defaultScore != ''
-                ? int.parse(widget.defaultScore)
-                : null;
-            Navigator.of(context).pop(ret);
+            Navigator.of(context).pop(null);
           },
         ),
         TextButton(
           child: const Text('保存'),
           onPressed: () {
-            final ret = widget.score != '' ? int.parse(widget.score) : null;
-            Navigator.of(context).pop(ret);
+            final originScore =
+                widget.score != '' ? int.parse(widget.score) : null;
+            final iv = InputValue(originScore, widget.ko, widget.wind);
+            Navigator.of(context).pop(iv);
           },
+        ),
+      ],
+    );
+  }
+
+  Widget keyButtonRow(int start) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        for (var i = start; i < start + keyButtonRowCnt; i++)
+          ElevatedButton(
+            onPressed: () {
+              addScore(i.toString());
+            },
+            child: ButtonText(i.toString()),
+          ),
+      ],
+    );
+  }
+
+  Widget koKindRow() {
+    final groupValue = widget.ko;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const NormalText('飛び賞'),
+        Container(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const NormalText('なし'),
+              Radio(
+                value: koKind.no,
+                groupValue: groupValue,
+                onChanged: setKo,
+              ),
+              const NormalText('あり'),
+              Radio(
+                value: koKind.yes,
+                groupValue: groupValue,
+                onChanged: setKo,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget windRow() {
+    final groupValue = widget.wind;
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const NormalText('場所'),
+            Container(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  NormalText(WindType.east.text),
+                  Radio(
+                    value: WindType.east,
+                    groupValue: groupValue,
+                    onChanged: setWind,
+                  ),
+                  NormalText(WindType.south.text),
+                  Radio(
+                    value: WindType.south,
+                    groupValue: groupValue,
+                    onChanged: setWind,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const NormalText('　　　'),
+            Container(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  NormalText(WindType.west.text),
+                  Radio(
+                    value: WindType.west,
+                    groupValue: groupValue,
+                    onChanged: setWind,
+                  ),
+                  NormalText(WindType.north.text),
+                  Radio(
+                    value: WindType.north,
+                    groupValue: groupValue,
+                    onChanged: setWind,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ],
     );
