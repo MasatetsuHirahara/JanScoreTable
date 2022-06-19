@@ -37,15 +37,8 @@ class GameListPage extends BaseBottomNavigationItemPage {
                           Navigator.of(context).push<dynamic>(ScorePage.route(
                               drId: cardPropertyList[index].dr.id));
                         },
-                        onLongTap: () async {
-                          final result = await showDialog<bool>(
-                              context: context,
-                              builder: (context) {
-                                return const DeleteDialog('削除してよろしいですか？');
-                              });
-                          if (result) {
-                            vm.deleteDayRecode(index);
-                          }
+                        deleteAction: () async {
+                          vm.deleteDayRecode(index);
                         }),
                   );
                 }),
@@ -72,10 +65,10 @@ class GameListPage extends BaseBottomNavigationItemPage {
 }
 
 class DayRecodeCard extends StatelessWidget {
-  const DayRecodeCard({this.property, this.onTap, this.onLongTap});
+  const DayRecodeCard({this.property, this.onTap, this.deleteAction});
   final CardProperty property;
   final GestureTapCallback onTap;
-  final GestureTapCallback onLongTap;
+  final GestureTapCallback deleteAction;
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +93,7 @@ class DayRecodeCard extends StatelessWidget {
         ),
         direction: DismissDirection.endToStart,
         onDismissed: (direction) {
-          onLongTap();
+          deleteAction();
           print('onDismissed');
         },
         confirmDismiss: (direction) async {
@@ -115,17 +108,26 @@ class DayRecodeCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.max,
           children: <Widget>[
             ListTile(
-              trailing: NormalText('${property.kind}'),
-              title: NormalText('${property.dr.day}'),
-              subtitle: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  for (final name in property.nameList) Text('$name'),
-                ],
-              ),
-              onTap: onTap,
-              onLongPress: onLongTap,
-            ),
+                trailing: NormalText('${property.kind}'),
+                title: NormalText('${property.dr.day}'),
+                subtitle: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    for (final name in property.nameList) Text('$name'),
+                  ],
+                ),
+                onTap: onTap,
+                onLongPress: () async {
+                  final result = await showDialog<bool>(
+                    context: context,
+                    builder: (context) {
+                      return const DeleteDialog('削除してよろしいですか？');
+                    },
+                  );
+                  if (result) {
+                    deleteAction();
+                  }
+                }),
           ],
         ),
       ),

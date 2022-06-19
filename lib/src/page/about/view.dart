@@ -16,7 +16,7 @@ class AboutPage extends BaseBottomNavigationItemPage {
     return SafeArea(
       child: Column(
         children: [
-          card('このアプリについて', () {
+          card('about', () {
             showAboutDialog(
                 context: context,
                 applicationName: '点数表',
